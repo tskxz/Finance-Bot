@@ -15,38 +15,49 @@
         <input type="text" id="ticker" name="ticker" required>
         <button type="submit">Fetch Data</button>
     </form>
-    {% if recommendation %}
-        <h2>Recommendation: {{ recommendation }}</h2>
-        <p>{{ explanation }}</p>
-    {% endif %}
 
-    {% if script and div %}
-        <div>{{ div | safe }}</div>
-        {{ script | safe }}
-    {% endif %}
+    <div id="recommendation">
+        {% if recommendation %}
+            <h2>{{ firm_name }} ({{ ticker }}) - Recommendation: {{ recommendation }}</h2>
+            <p>{{ explanation }}</p>
+        {% endif %}
+    </div>
+
+    <div id="plot-wrapper">
+        {% if plot_div and plot_script %}
+            <div id="plot">
+                {{ plot_div | safe }}
+                {{ plot_script | safe }}
+            </div>
+        {% endif %}
+    </div>
 
     {% if data %}
-        <h2>Stock Data:</h2>
-        <table>
-            <tr>
-                <th>Date</th>
-                <th>Open</th>
-                <th>High</th>
-                <th>Low</th>
-                <th>Close</th>
-                <th>Volume</th>
-            </tr>
-            {% for record in data %}
-            <tr>
-                <td>{{ record['Date'] }}</td>
-                <td>{{ record['Open'] }}</td>
-                <td>{{ record['High'] }}</td>
-                <td>{{ record['Low'] }}</td>
-                <td>{{ record['Close'] }}</td>
-                <td>{{ record['Volume'] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <div id="stock-data">
+            <h2>Stock Data:</h2>
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Date</th>
+                        <th>Open<br>(Opening Price)</th>
+                        <th>High<br>(Highest Price)</th>
+                        <th>Low<br>(Lowest Price)</th>
+                        <th>Close<br>(Closing Price)</th>
+                        <th>Volume<br>(Volume Traded)</th>
+                    </tr>
+                    {% for record in data[:5] %}
+                    <tr>
+                        <td>{{ record['Date'] }}</td>
+                        <td>{{ record['Open']|round(1) }}</td>
+                        <td>{{ record['High']|round(1) }}</td>
+                        <td>{{ record['Low']|round(1) }}</td>
+                        <td>{{ record['Close']|round(1) }}</td>
+                        <td>{{ record['Volume']|round(0) }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
     {% endif %}
 </body>
 </html>

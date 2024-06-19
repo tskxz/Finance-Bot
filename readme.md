@@ -55,5 +55,25 @@ Devido à fonte dos dados financeiros ser o Yahoo Finance, os dados e as informa
 2. **Visualizar dados e recomendação:**
 - Após buscar os dados, você pode clicar em "Show Data" para visualizar os dados históricos da ação, um gráfico com médias móveis e uma recomendação de investimento.
 
+## Bibliografia
+
+- **Flask**: Framework para web, que ajuda a interagir python com html.
+  - [Flask Documentation](https://flask.palletsprojects.com/en/2.0.x/)
+
+- **Bokeh**: Ajuda com a formacao de imagens/graficos e muito mais.
+  - [Bokeh Documentation](https://docs.bokeh.org/en/latest/index.html)
+
+- **pymongo**: Framework que ajuda a conexao entre Python e MongoDB.
+  - [pymongo Documentation](https://pymongo.readthedocs.io/en/stable/)
+
+- **yfinance**: Yahoo Finance api para ajudar com bots e muito mais.
+  - [yfinance GitHub Repository](https://github.com/ranaroussi/yfinance)
+
+- **pandas**: Libraria de manipulacao de dados e analitica.
+  - [pandas Documentation](https://pandas.pydata.org/docs/)
+
+- **datetime**: Libraria para manipulacao de datas em Python.
+  - [datetime Documentation](https://docs.python.org/3/library/datetime.html)
+
 # Conclusão
 - Este projeto "Projeto DBNoSql Financial" foi desenvolvido por Dmytro Bohutskyy como parte do trabalho final da disciplina de Banco de Dados NoSQL.

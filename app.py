@@ -1,20 +1,18 @@
+from bokeh.plotting import figure
+from bokeh.embed import components
+from bokeh.models import HoverTool
+from bokeh.resources import CDN
 from flask import Flask, render_template, request, redirect
 from pymongo import MongoClient
 import yfinance as yf
 import pandas as pd
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.resources import CDN
-from bokeh.layouts import column
 from datetime import datetime
 
 app = Flask(__name__)
 
-# MongoDB connection
 client = MongoClient("mongodb://localhost:27017/")
-db = client.stock_data  # Database name
+db = client.stock_data 
 
-# Function to fetch and store data from Yahoo Finance
 def fetch_and_store_data(ticker_symbol):
     ticker = yf.Ticker(ticker_symbol)
     hist = ticker.history(period="1mo")
@@ -26,7 +24,6 @@ def fetch_and_store_data(ticker_symbol):
         upsert=True
     )
 
-# Simple buy/sell recommendation based on moving average
 def get_recommendation(data):
     df = pd.DataFrame(data)
     df['MA20'] = df['Close'].rolling(window=20).mean()
@@ -48,28 +45,41 @@ def get_recommendation(data):
 
     return recommendation, explanation
 
-# Create Bokeh plot
-def create_plot(data):
+
+def create_detailed_plot(data):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
-    p = figure(x_axis_type="datetime", title="Stock Closing Prices", height=350, width=800)
+    
+    p = figure(x_axis_type="datetime", title="Stock Price Movement", width=800)
     p.line(df['Date'], df['Close'], color='navy', legend_label='Close Price')
     p.line(df['Date'], df['Close'].rolling(window=20).mean(), color='orange', legend_label='20-Day MA')
     p.line(df['Date'], df['Close'].rolling(window=50).mean(), color='green', legend_label='50-Day MA')
+    
+    tooltips = [
+        ("Date", "@x{%F}"),
+        ("Close", "@y")
+    ]
+    p.add_tools(HoverTool(tooltips=tooltips, formatters={'@x': 'datetime'}))
+    
     p.legend.location = "top_left"
     p.xaxis.axis_label = 'Date'
     p.yaxis.axis_label = 'Price'
-    return p
+    
+    script, div = components(p)
+    return script, div
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/fetch', methods=['POST'])
 def fetch():
     ticker_symbol = request.form['ticker']
     fetch_and_store_data(ticker_symbol)
     return redirect('/show?ticker=' + ticker_symbol)
+
 
 @app.route('/show')
 def show():
@@ -78,13 +88,15 @@ def show():
     if stock_data:
         data = stock_data['history']
         recommendation, explanation = get_recommendation(data)
-        plot = create_plot(data)
-        script, div = components(plot)
+        plot_script, plot_div = create_detailed_plot(data)
         cdn_js = CDN.js_files[0] if CDN.js_files else ''
         cdn_css = CDN.css_files[0] if CDN.css_files else ''
-        return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation, script=script, div=div, cdn_js=cdn_js, cdn_css=cdn_css)
+        firm_name = stock_data.get('name', 'Unknown Firm')  
+        return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation,
+        plot_script=plot_script, plot_div=plot_div, cdn_js=cdn_js, cdn_css=cdn_css,
+        firm_name=firm_name, ticker=ticker_symbol)
     else:
-        return f"No data found for {ticker_symbol}!"
+        return f"Data not found for {ticker_symbol}!"
 
 if __name__ == '__main__':
     app.run(debug=True)
