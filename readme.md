@@ -1,4 +1,4 @@
-# Projeto DBNoSql Financial
+# Projeto BDNoSql Financial
 
 Este projeto tem como objetivo criar uma aplicação web para análise de dados financeiros utilizando Flask, MongoDB e Bokeh. A aplicação se conecta ao Yahoo Finance para obter dados históricos de ações, armazena esses dados no MongoDB (um banco de dados NoSQL) e exibe visualizações gráficas desses dados junto com recomendações de compra, venda ou manutenção das ações com base em médias móveis simples.
 
@@ -28,7 +28,7 @@ Para executar esta aplicação localmente, é necessário ter o Python instalado
 
 1. **Clone o repositório:**
 git clone https://github.com/Dark1nessss/Finance-Bot
-cd projeto-db-nosql-financial
+cd Finance-Bot
 
 2. **Instale as dependências:**
 pip install -r requirements.txt
@@ -76,4 +76,4 @@ Devido à fonte dos dados financeiros ser o Yahoo Finance, os dados e as informa
   - [datetime Documentation](https://docs.python.org/3/library/datetime.html)
 
 # Conclusão
-- Este projeto "Projeto DBNoSql Financial" foi desenvolvido por Dmytro Bohutskyy como parte do trabalho final da disciplina de Banco de Dados NoSQL.
+- Este projeto "Projeto BDNoSql Financial" foi desenvolvido por Dmytro Bohutskyy como parte do trabalho final da disciplina de Banco de Dados NoSQL.
