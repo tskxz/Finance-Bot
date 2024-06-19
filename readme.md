@@ -1,79 +1,72 @@
-# Projeto BDNoSql Financial
+# Personal Financial Project
 
-Este projeto tem como objetivo criar uma aplicação web para análise de dados financeiros utilizando Flask, MongoDB e Bokeh. A aplicação se conecta ao Yahoo Finance para obter dados históricos de ações, armazena esses dados no MongoDB (um banco de dados NoSQL) e exibe visualizações gráficas desses dados junto com recomendações de compra, venda ou manutenção das ações com base em médias móveis simples.
+This project aims to create a web application for financial data analysis using Flask, MongoDB, and Bokeh. The application connects to Yahoo Finance to retrieve historical stock data, stores this data in MongoDB (a NoSQL database), and displays graphical visualizations of this data along with buy, sell, or hold recommendations based on simple moving averages.
 
-## Funcionalidades
+## Features
 
-1. **Conexão com Yahoo Finance:**
-   - A aplicação se conecta à API do Yahoo Finance para obter dados históricos de ações com base no símbolo fornecido pelo usuário.
+1. **Connection to Yahoo Finance:**
+- The application connects to the Yahoo Finance API to retrieve historical stock data based on the user-provided symbol.
 
-2. **Armazenamento em MongoDB:**
-   - Os dados obtidos do Yahoo Finance são armazenados no MongoDB. Cada ação é armazenada como um documento na coleção `stocks` no banco de dados `stock_data`.
+2. **Storage in MongoDB:**
+- The data retrieved from Yahoo Finance is stored in MongoDB. Each stock is stored as a document in the `stocks` collection in the `stock_data` database.
 
-3. **Análise e Recomendação de Investimentos:**
-   - Com base nos dados históricos das ações, a aplicação calcula médias móveis de 20 dias e 50 dias.
-   - Uma recomendação de "Compra" é feita se a média móvel de 20 dias estiver acima da média móvel de 50 dias.
-   - Uma recomendação de "Venda" é feita se a média móvel de 20 dias estiver abaixo da média móvel de 50 dias.
-   - Uma recomendação de "Manutenção" é feita se as médias móveis não mostrarem um padrão claro.
+3. **Investment Analysis and Recommendation:**
+- Based on the historical stock data, the application calculates 20-day and 50-day moving averages.
+- A "Buy" recommendation is made if the 20-day moving average is above the 50-day moving average.
+- A "Sell" recommendation is made if the 20-day moving average is below the 50-day moving average.
+- A "Hold" recommendation is made if the moving averages do not show a clear pattern.
 
-4. **Visualização Gráfica com Bokeh:**
-   - Utiliza a biblioteca Bokeh para criar gráficos interativos de preços de fechamento das ações e suas médias móveis.
-   - Os gráficos são incorporados na página web para visualização fácil e compreensão dos dados.
+4. **Graphical Visualization with Bokeh:**
+- Uses the Bokeh library to create interactive charts of stock closing prices and their moving averages.
+- The charts are embedded in the web page for easy viewing and understanding of the data.
 
-## Pré-requisitos
+## Prerequisites
 
-Para executar esta aplicação localmente, é necessário ter o Python instalado juntamente com as bibliotecas especificadas no arquivo `requirements.txt`. Além disso, um servidor MongoDB deve estar em execução na máquina local ou em uma máquina remota acessível.
+To run this application locally, you need to have Python installed along with the libraries specified in the `requirements.txt` file. Additionally, a MongoDB server must be running on the local machine or on an accessible remote machine.
 
-## Instalação e Execução
+## Installation and Execution
 
-1. **Clone o repositório:**
+1. **Clone the repository:**
 git clone https://github.com/Dark1nessss/Finance-Bot
 cd Finance-Bot
 
-2. **Instale as dependências:**
+2. **Install the dependencies:**
 pip install -r requirements.txt
 
-3. **Configure o MongoDB:**
-- Certifique-se de que o servidor MongoDB esteja em execução.
+3. **Configure MongoDB:**
+- Ensure that the MongoDB server is running.
 
-4. **Execute a aplicação:**
+4. **Run the application:**
 python app.py
 
-5. **Acesse a aplicação:**
-- Abra o navegador e vá para `http://localhost:5000`.
+5. **Access the application:**
+- Open the browser and go to `http://localhost:5000`.
 
-## Idioma
-**Aviso!!**
-Devido à fonte dos dados financeiros ser o Yahoo Finance, os dados e as informações apresentadas na aplicação estão em inglês.
+## Usage
 
-## Utilização
+1. **Fetch stock data:**
+- On the homepage, enter the symbol of a stock (e.g., AAPL for Apple) and click on "Fetch Data".
+- This will fetch the latest stock data from Yahoo Finance and store it in MongoDB.
 
-1. **Buscar dados de uma ação:**
-- Na página inicial, digite o símbolo de uma ação (por exemplo, AAPL para Apple) e clique em "Fetch Data".
-- Isso buscará os dados mais recentes da ação do Yahoo Finance e os armazenará no MongoDB.
+2. **View data and recommendation:**
+- After fetching the data, you can click on "Show Data" to view the historical stock data, a chart with moving averages, and an investment recommendation.
 
-2. **Visualizar dados e recomendação:**
-- Após buscar os dados, você pode clicar em "Show Data" para visualizar os dados históricos da ação, um gráfico com médias móveis e uma recomendação de investimento.
+## Bibliography
 
-## Bibliografia
-
-- **Flask**: Framework para web, que ajuda a interagir python com html.
+- **Flask:** Web framework that helps interact with HTML using Python.
   - [Flask Documentation](https://flask.palletsprojects.com/en/2.0.x/)
 
-- **Bokeh**: Ajuda com a formacao de imagens/graficos e muito mais.
+- **Bokeh:** Helps with the creation of images/charts and much more.
   - [Bokeh Documentation](https://docs.bokeh.org/en/latest/index.html)
 
-- **pymongo**: Framework que ajuda a conexao entre Python e MongoDB.
+- **pymongo**: Framework that facilitates the connection between Python and MongoDB.
   - [pymongo Documentation](https://pymongo.readthedocs.io/en/stable/)
 
-- **yfinance**: Yahoo Finance api para ajudar com bots e muito mais.
+- **yfinance**: Yahoo Finance API to assist with bots and more.
   - [yfinance GitHub Repository](https://github.com/ranaroussi/yfinance)
 
-- **pandas**: Libraria de manipulacao de dados e analitica.
+- **pandas**: Data manipulation and analysis library.
   - [pandas Documentation](https://pandas.pydata.org/docs/)
 
-- **datetime**: Libraria para manipulacao de datas em Python.
+- **datetime**: Library for date manipulation in Python.
   - [datetime Documentation](https://docs.python.org/3/library/datetime.html)
-
-# Conclusão
-- Este projeto "Projeto BDNoSql Financial" foi desenvolvido por Dmytro Bohutskyy como parte do trabalho final da disciplina de Banco de Dados NoSQL.
