@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Data</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Stock Data Fetcher</h1>
+    <form action="/fetch" method="post">
+        <label for="ticker">Enter Ticker Symbol:</label>
+        <input type="text" id="ticker" name="ticker" required>
+        <button type="submit">Fetch Data</button>
+    </form>
+    <form action="/show" method="post">
+        <label for="ticker">Enter Ticker Symbol:</label>
+        <input type="text" id="ticker" name="ticker" required>
+        <button type="submit">Show Data</button>
+    </form>
+
+    {% if data %}
+        <h2>Stock Data:</h2>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Open</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Close</th>
+                <th>Volume</th>
+            </tr>
+            {% for record in data %}
+            <tr>
+                <td>{{ record['Date'] }}</td>
+                <td>{{ record['Open'] }}</td>
+                <td>{{ record['High'] }}</td>
+                <td>{{ record['Low'] }}</td>
+                <td>{{ record['Close'] }}</td>
+                <td>{{ record['Volume'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>
