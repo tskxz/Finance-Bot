@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Data</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="{{ cdn_css }}">
+    <script src="{{ cdn_js }}"></script>
 </head>
 <body>
     <h1>Stock Data Fetcher</h1>
@@ -13,11 +15,21 @@
         <input type="text" id="ticker" name="ticker" required>
         <button type="submit">Fetch Data</button>
     </form>
-    <form action="/show" method="post">
+    <form action="/show" method="get">
         <label for="ticker">Enter Ticker Symbol:</label>
         <input type="text" id="ticker" name="ticker" required>
         <button type="submit">Show Data</button>
     </form>
+
+    {% if recommendation %}
+        <h2>Recommendation: {{ recommendation }}</h2>
+        <p>{{ explanation }}</p>
+    {% endif %}
+
+    {% if script and div %}
+        <div>{{ div | safe }}</div>
+        {{ script | safe }}
+    {% endif %}
 
     {% if data %}
         <h2>Stock Data:</h2>
