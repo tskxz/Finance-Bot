@@ -42,6 +42,10 @@ python app.py
 5. **Acesse a aplicação:**
 - Abra o navegador e vá para `http://localhost:5000`.
 
+## Idioma
+**Aviso!!**
+Devido à fonte dos dados financeiros ser o Yahoo Finance, os dados e as informações apresentadas na aplicação estão em inglês.
+
 ## Utilização
 
 1. **Buscar dados de uma ação:**
