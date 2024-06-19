@@ -15,12 +15,6 @@
         <input type="text" id="ticker" name="ticker" required>
         <button type="submit">Fetch Data</button>
     </form>
-    <form action="/show" method="get">
-        <label for="ticker">Enter Ticker Symbol:</label>
-        <input type="text" id="ticker" name="ticker" required>
-        <button type="submit">Show Data</button>
-    </form>
-
     {% if recommendation %}
         <h2>Recommendation: {{ recommendation }}</h2>
         <p>{{ explanation }}</p>
