@@ -27,7 +27,7 @@ Para executar esta aplicação localmente, é necessário ter o Python instalado
 ## Instalação e Execução
 
 1. **Clone o repositório:**
-git clone https://github.com/seu-usuario/projeto-db-nosql-financial.git
+git clone https://github.com/Dark1nessss/Finance-Bot
 cd projeto-db-nosql-financial
 
 2. **Instale as dependências:**
