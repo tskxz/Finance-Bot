@@ -18,7 +18,7 @@ form input[type="text"], form button {
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-right: 10px;
-    width: 200px; /* Adjust width as needed */
+    width: 200px;
 }
 
 form button {
@@ -37,12 +37,12 @@ form button:hover {
     padding: 10px;
     background-color: #e7f3eb;
     border-left: 6px solid #4CAF50;
-    width: 80%; /* Adjust width as needed */
-    margin: auto; /* Center recommendation */
+    width: 80%;
+    margin: auto;
 }
 
 #plot-wrapper {
-    text-align: center; /* Center the plot */
+    text-align: center;
     margin-top: 20px;
 }
 
@@ -59,7 +59,7 @@ form button:hover {
 
 .table-wrapper {
     overflow-x: auto;
-    max-height: 200px; /* Adjust max-height as needed */
+    max-height: 200px;
 }
 
 table {
@@ -87,4 +87,11 @@ th {
     #recommendation, #plot {
         width: 100%;
     }
+}
+
+#plot {
+    width: 800px; 
+    height: 400px;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }

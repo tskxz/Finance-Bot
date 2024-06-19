@@ -6,16 +6,15 @@ from flask import Flask, render_template, request, redirect
 from pymongo import MongoClient
 import yfinance as yf
 import pandas as pd
-from datetime import datetime
 
 app = Flask(__name__)
 
 client = MongoClient("mongodb://localhost:27017/")
-db = client.stock_data 
+db = client.stock_data
 
 def fetch_and_store_data(ticker_symbol):
     ticker = yf.Ticker(ticker_symbol)
-    hist = ticker.history(period="1mo")
+    hist = ticker.history(period="6mo") 
     hist.reset_index(inplace=True)
     hist_dict = hist.to_dict(orient="records")
     db.stocks.update_one(
@@ -31,8 +30,7 @@ def get_recommendation(data):
     
     ma20_latest = df['MA20'].iloc[-1]
     ma50_latest = df['MA50'].iloc[-1]
-    close_latest = df['Close'].iloc[-1]
-
+    
     if ma20_latest > ma50_latest:
         recommendation = "Buy"
         explanation = f"The 20-day moving average ({ma20_latest:.2f}) is higher than the 50-day moving average ({ma50_latest:.2f}), indicating an upward trend."
@@ -42,15 +40,23 @@ def get_recommendation(data):
     else:
         recommendation = "Hold"
         explanation = f"The 20-day moving average ({ma20_latest:.2f}) is equal to the 50-day moving average ({ma50_latest:.2f}), indicating no significant trend."
-
+    
     return recommendation, explanation
-
 
 def create_detailed_plot(data):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
+
+    plot_height = 400 
+    num_records = len(df)
     
-    p = figure(x_axis_type="datetime", title="Stock Price Movement", width=800)
+    num_visible_points = 50
+    if num_records > num_visible_points:
+        start_index = num_records - num_visible_points
+    else:
+        start_index = 0
+    
+    p = figure(x_axis_type="datetime", title="Stock Price Movement", width=800, height=plot_height)
     p.line(df['Date'], df['Close'], color='navy', legend_label='Close Price')
     p.line(df['Date'], df['Close'].rolling(window=20).mean(), color='orange', legend_label='20-Day MA')
     p.line(df['Date'], df['Close'].rolling(window=50).mean(), color='green', legend_label='50-Day MA')
@@ -68,11 +74,9 @@ def create_detailed_plot(data):
     script, div = components(p)
     return script, div
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/fetch', methods=['POST'])
 def fetch():
@@ -80,18 +84,18 @@ def fetch():
     fetch_and_store_data(ticker_symbol)
     return redirect('/show?ticker=' + ticker_symbol)
 
-
 @app.route('/show')
 def show():
     ticker_symbol = request.args.get('ticker')
     stock_data = db.stocks.find_one({"symbol": ticker_symbol})
+    
     if stock_data:
         data = stock_data['history']
         recommendation, explanation = get_recommendation(data)
         plot_script, plot_div = create_detailed_plot(data)
         cdn_js = CDN.js_files[0] if CDN.js_files else ''
         cdn_css = CDN.css_files[0] if CDN.css_files else ''
-        firm_name = stock_data.get('name', 'Unknown Firm')  
+        firm_name = stock_data.get('name', 'Unknown Firm') 
         return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation,
         plot_script=plot_script, plot_div=plot_div, cdn_js=cdn_js, cdn_css=cdn_css,
         firm_name=firm_name, ticker=ticker_symbol)

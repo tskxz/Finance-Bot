@@ -45,7 +45,7 @@
                         <th>Close<br>(Closing Price)</th>
                         <th>Volume<br>(Volume Traded)</th>
                     </tr>
-                    {% for record in data[:5] %}
+                    {% for record in data %}
                     <tr>
                         <td>{{ record['Date'] }}</td>
                         <td>{{ record['Open']|round(1) }}</td>
