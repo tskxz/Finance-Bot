@@ -1,28 +1,46 @@
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.models import HoverTool
-from bokeh.resources import CDN
 from flask import Flask, render_template, request, redirect
 from pymongo import MongoClient
 import yfinance as yf
 import pandas as pd
+from bokeh.plotting import figure
+from bokeh.embed import components
+from bokeh.models import HoverTool
+from bokeh.resources import CDN
+import subprocess
 
 app = Flask(__name__)
 
+# Function to initialize database (runs init.py)
+def initialize_database():
+    try:
+        subprocess.run(['python', 'init.py'], check=True)
+        print("Database initialized successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Database initialization failed: {e}")
+
+# Initialize database when app starts
+initialize_database()
+
+# MongoDB setup
 client = MongoClient("mongodb://localhost:27017/")
 db = client.stock_data
 
+# Function to fetch and store data in MongoDB
 def fetch_and_store_data(ticker_symbol):
     ticker = yf.Ticker(ticker_symbol)
     hist = ticker.history(period="6mo") 
     hist.reset_index(inplace=True)
     hist_dict = hist.to_dict(orient="records")
-    db.stocks.update_one(
+    
+    # Store data in MongoDB
+    stocks_collection = db.stocks
+    stocks_collection.update_one(
         {"symbol": ticker_symbol},
         {"$set": {"history": hist_dict}},
         upsert=True
     )
 
+# Function to get recommendation based on data
 def get_recommendation(data):
     df = pd.DataFrame(data)
     df['MA20'] = df['Close'].rolling(window=20).mean()
@@ -43,6 +61,7 @@ def get_recommendation(data):
     
     return recommendation, explanation
 
+# Function to create detailed plot using Bokeh
 def create_detailed_plot(data):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
