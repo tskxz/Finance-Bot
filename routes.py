@@ -5,11 +5,12 @@ from operations import db
 def init_routes(app):
     @app.route('/')
     def index():
-        if 'username' in session:
-            return render_template('index.html')
-        else:
+        if 'username' not in session or session['username'] != 'admin':
+            flash('Access denied: You do not have permission to access this page.', 'error')
             return redirect(url_for('login'))
-
+        
+        return render_template('index.html')
+    
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
