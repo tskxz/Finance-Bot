@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash
 from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user
-from operations import db  # Import the db object from operations
+from operations import db 
 
 def init_routes(app):
     @app.route('/')
