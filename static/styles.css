@@ -95,3 +95,9 @@ th {
     overflow-y: scroll;
     overflow-x: hidden;
 }
+
+.logout-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}

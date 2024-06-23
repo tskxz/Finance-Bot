@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-import datetime
 
 def init_database():
     client = MongoClient("mongodb://localhost:27017/")
@@ -11,7 +10,7 @@ def init_database():
             "name": "users",
             "schema": {
                 "username": "string",
-                "password_hash": "string",
+                "password": "string",
                 "email": "string",
                 "created_at": "date",
                 "updated_at": "date",
@@ -104,7 +103,7 @@ def init_database():
         }
     ]
     
-    # Create collections and indexes
+# Create collections and indexes
     for collection_info in collections:
         collection_name = collection_info['name']
         schema = collection_info['schema']
@@ -119,21 +118,11 @@ def init_database():
                 db.users.create_index([("email", 1)], unique=True)
             elif collection_name == "stocks":
                 db.stocks.create_index([("symbol", 1)], unique=True)
-            elif collection_name == "user_preferences":
-                db.user_preferences.create_index([("user_id", 1)], unique=True)
             # Add more indexes as per your application needs
             
             # Insert initial data if needed (example)
-            if collection_name == "user_preferences":
-                default_preferences = {
-                    "user_id": "default_user",
-                    "theme": "light",
-                    "language": "en",
-                    "default_chart_type": "line"
-                }
-                db.user_preferences.insert_one(default_preferences)
-                print("Initial user preferences inserted.")
-        
+            # Note: No data insertion in initdb.py, only collection creation
+
         else:
             print(f"Collection '{collection_name}' already exists.")
 
