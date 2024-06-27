@@ -5,3 +5,5 @@ matplotlib
 requests
 bokeh
 yfinance
+Flask-SocketIO 
+eventlet

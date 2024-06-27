@@ -6,92 +6,203 @@
     <title>Set Alerts</title>
     <link rel="stylesheet" href="{{ cdn_css }}">
     <style>
-        * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-/* Basic styling */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure full viewport height */
 }
 
 .container {
+    width: 80%;
     max-width: 800px;
-    margin: 20px auto;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: auto;
+    overflow: hidden;
+    flex: 1; /* Fill remaining vertical space */
 }
 
 header {
-    background-color: #333;
+    background: #333;
     color: #fff;
-    padding: 10px 0;
+    padding-top: 30px;
+    min-height: 70px;
+    border-bottom: #77b300 3px solid;
 }
 
-nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    text-align: right;
-}
-
-nav ul li {
-    display: inline;
-    margin-right: 10px;
-}
-
-nav ul li a {
+header a {
     color: #fff;
     text-decoration: none;
-    padding: 5px 10px;
-    border-radius: 4px;
+    text-transform: uppercase;
+    font-size: 16px;
 }
 
-nav ul li a:hover {
-    background-color: #555;
+header ul {
+    padding: 0;
+    list-style: none;
+}
+
+header li {
+    display: inline;
+    padding: 0 20px 0 20px;
+}
+
+header .highlight,
+header .current a {
+    color: #77b300;
+    font-weight: bold;
+}
+
+header a:hover {
+    color: #cccccc;
+    font-weight: bold;
 }
 
 .logout-btn {
     background-color: #dc3545;
-    padding: 5px 10px;
+    color: #fff;
+    padding: 12px 24px;
     border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
 }
 
 .logout-btn:hover {
     background-color: #c82333;
 }
 
-form {
+.alerts-heading {
+    background-color: #007bff;
+    color: #fff;
+    padding: 15px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.alerts-list {
+    list-style: none;
+    padding: 0;
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: calc(2 * (20px + 20px + 20px + 20px + 2 * 5px)); /* Limit height for 2 alerts */
 }
 
 .alert {
-    background-color: #f0f0f0;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-left: 4px solid #007bff;
+    background-color: #f8f9fa;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 5px solid #007bff;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
 }
 
-.alert form {
-    display: inline-block;
-    margin-left: 10px;
+.alert:hover {
+    transform: translateY(-5px);
 }
 
-.alert button {
+.alert-content {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.alert-actions button {
     background-color: #dc3545;
     color: #fff;
     border: none;
-    padding: 5px 10px;
+    padding: 10px 20px;
     border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 14px;
+    transition: background-color 0.3s ease-in-out;
 }
 
-.alert button:hover {
+.alert-actions button:hover {
     background-color: #c82333;
+}
+
+.form-container {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+    padding: 12px;
+    width: 760px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.form-group select {
+    appearance: none; /* Remove default select arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23007BFF'%3E%3Cpath d='M6.5 7.5l3.25 3.25 3.25-3.25z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position-x: calc(100% - 12px);
+    background-position-y: center;
+    padding-right: 30px; /* Adjust as per icon size */
+}
+
+.form-actions {
+    text-align: right;
+}
+
+.form-actions button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.form-actions button:hover {
+    background-color: #0056b3;
+}
+
+footer {
+    padding: 20px;
+    color: #fff;
+    background-color: #333;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
     </style>
 </head>
@@ -109,28 +220,49 @@ form {
     <div class="container">
         <h1>Set Alerts</h1>
 
-        <form action="/alerts" method="post">
-            <label for="ticker">Ticker Symbol:</label>
-            <input type="text" id="ticker" name="ticker" required>
-            <label for="condition">Condition:</label>
-            <select id="condition" name="condition" required>
-                <option value="above">Above</option>
-                <option value="below">Below</option>
-            </select>
-            <label for="price">Price:</label>
-            <input type="number" id="price" name="price" step="0.01" required>
-            <button type="submit">Set Alert</button>
+        <form action="/alerts" method="post" id="alert-form">
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="ticker">Ticker Symbol:</label>
+                    <input type="text" id="ticker" name="ticker" required>
+                </div>
+                <div class="form-group">
+                    <label for="condition">Condition:</label>
+                    <select id="condition" name="condition" required>
+                        <option value="above">Above</option>
+                        <option value="below">Below</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" name="price" step="0.01" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit">Set Alert</button>
+                </div>
+            </div>
         </form>
 
-        {% for alert in alerts %}
-        <div class="alert">
-            <p><strong>{{ alert['ticker_symbol'] }}</strong> - {{ alert['condition'] }} ${{ alert['price'] }}</p>
-            <form action="/remove_alert/{{ alert['ticker_symbol'] }}" method="post">
-                <button type="submit">Remove Alert</button>
-            </form>
+        <div class="alerts-list">
+            <h2 class="alerts-heading">Current Alerts</h2>
+            {% for alert in alerts %}
+            <div class="alert">
+                <div class="alert-content">
+                    <p><strong>{{ alert['ticker_symbol'] }}</strong> - {{ alert['condition'] }} ${{ alert['price'] }}</p>
+                </div>
+                <div class="alert-actions">
+                    <form action="/remove_alert/{{ alert['ticker_symbol'] }}" method="post">
+                        <button type="submit">Remove Alert</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+
+    <footer>
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
 
 </body>
 </html>
