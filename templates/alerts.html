@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Alerts</title>
+    <link rel="stylesheet" href="{{ cdn_css }}">
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Basic styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    text-align: right;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 10px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+nav ul li a:hover {
+    background-color: #555;
+}
+
+.logout-btn {
+    background-color: #dc3545;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+.alert {
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-left: 4px solid #007bff;
+}
+
+.alert form {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.alert button {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.alert button:hover {
+    background-color: #c82333;
+}
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('alerts') }}">Alerts</a></li>
+                <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Set Alerts</h1>
+
+        <form action="/alerts" method="post">
+            <label for="ticker">Ticker Symbol:</label>
+            <input type="text" id="ticker" name="ticker" required>
+            <label for="condition">Condition:</label>
+            <select id="condition" name="condition" required>
+                <option value="above">Above</option>
+                <option value="below">Below</option>
+            </select>
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" step="0.01" required>
+            <button type="submit">Set Alert</button>
+        </form>
+
+        {% for alert in alerts %}
+        <div class="alert">
+            <p><strong>{{ alert['ticker_symbol'] }}</strong> - {{ alert['condition'] }} ${{ alert['price'] }}</p>
+            <form action="/remove_alert/{{ alert['ticker_symbol'] }}" method="post">
+                <button type="submit">Remove Alert</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

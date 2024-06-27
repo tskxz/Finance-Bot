@@ -1,5 +1,7 @@
-yfinance
-flask
-pymongo
-pandas
+Flask 
+pymongo 
+pandas 
+matplotlib 
+requests
 bokeh
+yfinance

@@ -5,62 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Data</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="{{ cdn_css }}">
+    {% if cdn_css %}
+        <link rel="stylesheet" href="{{ cdn_css }}">
+    {% endif %}
 </head>
 <body>
-    <div>
-        <h1>Stock Data Fetcher</h1>
-        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
-    </div>
-
-    <form action="/fetch" method="post">
-        <label for="ticker">Enter Ticker Symbol:</label>
-        <input type="text" id="ticker" name="ticker" required>
-        <button type="submit">Fetch Data</button>
-    </form>
-
-    <div id="recommendation">
-        {% if recommendation %}
-            <h2>{{ firm_name }} ({{ ticker }}) - Recommendation: {{ recommendation }}</h2>
-            <p>{{ explanation }}</p>
-        {% endif %}
-    </div>
-
-    <div id="plot-wrapper">
-        {% if plot_div and plot_script %}
-            <div id="plot">
-                {{ plot_div | safe }}
-                {{ plot_script | safe }}
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1>Stock Data Fetcher</h1>
             </div>
-        {% endif %}
-    </div>
-
-    {% if data %}
-        <div id="stock-data">
-            <h2>Stock Data:</h2>
-            <div class="table-wrapper">
-                <table>
-                    <tr>
-                        <th>Date</th>
-                        <th>Open<br>(Opening Price)</th>
-                        <th>High<br>(Highest Price)</th>
-                        <th>Low<br>(Lowest Price)</th>
-                        <th>Close<br>(Closing Price)</th>
-                        <th>Volume<br>(Volume Traded)</th>
-                    </tr>
-                    {% for record in data %}
-                    <tr>
-                        <td>{{ record['Date'] }}</td>
-                        <td>{{ record['Open']|round(1) }}</td>
-                        <td>{{ record['High']|round(1) }}</td>
-                        <td>{{ record['Low']|round(1) }}</td>
-                        <td>{{ record['Close']|round(1) }}</td>
-                        <td>{{ record['Volume']|round(0) }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </div>
+            <nav>
+                <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('alerts') }}">Alerts</a></li>
+                <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
         </div>
-    {% endif %}
+    </header>
+    <section id="showcase">
+        <div class="container">
+            <h1>Welcome to Stock Data Fetcher</h1>
+            <p>Get the latest stock data and recommendations.</p>
+        </div>
+    </section>
+    <section id="main">
+        <div class="container">
+            <form action="/fetch" method="post">
+                <label for="ticker">Enter Ticker Symbol:</label>
+                <input type="text" id="ticker" name="ticker" required>
+                <button type="submit">Fetch Data</button>
+            </form>
+
+            <div id="recommendation">
+                {% if recommendation %}
+                    <h2>{{ firm_name }} ({{ ticker }}) - Recommendation: {{ recommendation }}</h2>
+                    <p>{{ explanation }}</p>
+                {% endif %}
+            </div>
+
+            <div id="plot-wrapper">
+                {% if plot_div and plot_script %}
+                    <div id="plot">
+                        {{ plot_div | safe }}
+                        {% if cdn_js %}
+                            <script src="{{ cdn_js }}"></script>
+                        {% endif %}
+                        {{ plot_script | safe }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if data %}
+                <div id="stock-data">
+                    <h2>Stock Data:</h2>
+                    <div class="table-wrapper">
+                        <table>
+                            <tr>
+                                <th>Date</th>
+                                <th>Open<br>(Opening Price)</th>
+                                <th>High<br>(Highest Price)</th>
+                                <th>Low<br>(Lowest Price)</th>
+                                <th>Close<br>(Closing Price)</th>
+                                <th>Volume<br>(Volume Traded)</th>
+                            </tr>
+                            {% for record in data %}
+                            <tr>
+                                <td>{{ record['Date'] }}</td>
+                                <td>{{ record['Open']|round(1) }}</td>
+                                <td>{{ record['High']|round(1) }}</td>
+                                <td>{{ record['Low']|round(1) }}</td>
+                                <td>{{ record['Close']|round(1) }}</td>
+                                <td>{{ record['Volume']|round(0) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    <footer>
+        <p>Stock Data Fetcher &copy; 2024</p>
+    </footer>
 </body>
 </html>

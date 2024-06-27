@@ -4,6 +4,7 @@ from pymongo import MongoClient
 from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.models import HoverTool
+from bokeh.resources import CDN
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client.stock_data
@@ -15,11 +16,13 @@ def fetch_and_store_data(ticker_symbol):
     hist.reset_index(inplace=True)
     hist_dict = hist.to_dict(orient="records")
     
+    company_name = ticker.info.get('shortName', 'Unknown Firm')
+    
     # Store data in MongoDB
     stocks_collection = db.stocks
     stocks_collection.update_one(
         {"symbol": ticker_symbol},
-        {"$set": {"history": hist_dict}},
+        {"$set": {"history": hist_dict, "name": company_name}},
         upsert=True
     )
 
@@ -76,9 +79,39 @@ def create_detailed_plot(data):
     p.yaxis.axis_label = "Price (USD)"
     
     script, div = components(p)
-    return script, div
+    cdn_js = CDN.js_files[0] if CDN.js_files else None
+    cdn_css = CDN.css_files[0] if CDN.css_files else None
+    
+    return script, div, cdn_css, cdn_js
 
 # Function to validate user credentials
 def validate_user(username, password):
     user = db.users.find_one({"username": username, "password": password})
     return user
+
+
+# Function to add or update an alert
+def add_alert(username, ticker_symbol, condition, price):
+    alerts_collection = db.alerts
+    alert = {
+        "username": username,
+        "ticker_symbol": ticker_symbol,
+        "condition": condition,
+        "price": price
+    }
+    alerts_collection.update_one(
+        {"username": username, "ticker_symbol": ticker_symbol},
+        {"$set": alert},
+        upsert=True
+    )
+
+# Function to get alerts for a specific user
+def get_user_alerts(username):
+    alerts_collection = db.alerts
+    alerts = list(alerts_collection.find({"username": username}))
+    return alerts
+
+# Function to remove an alert
+def remove_alert(username, ticker_symbol):
+    alerts_collection = db.alerts
+    alerts_collection.delete_one({"username": username, "ticker_symbol": ticker_symbol})

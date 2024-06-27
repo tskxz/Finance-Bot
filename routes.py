@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, session, url_for, flash
-from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user
+from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert
 from operations import db 
 
 def init_routes(app):
@@ -47,10 +47,10 @@ def init_routes(app):
         if stock_data:
             data = stock_data['history']
             recommendation, explanation = get_recommendation(data)
-            plot_script, plot_div = create_detailed_plot(data)
+            plot_script, plot_div, cdn_css, cdn_js = create_detailed_plot(data)
             firm_name = stock_data.get('name', 'Unknown Firm') 
             return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation,
-            plot_script=plot_script, plot_div=plot_div, firm_name=firm_name, ticker=ticker_symbol)
+            plot_script=plot_script, plot_div=plot_div, firm_name=firm_name, ticker=ticker_symbol, cdn_css=cdn_css, cdn_js=cdn_js)
         else:
             return f"Data not found for {ticker_symbol}!"
 
@@ -59,3 +59,27 @@ def init_routes(app):
         allowed_routes = ['login']
         if 'username' not in session and request.endpoint not in allowed_routes:
             return redirect(url_for('login'))
+        
+    @app.route('/alerts', methods=['GET', 'POST'])
+    def alerts():
+        if 'username' not in session:
+            return redirect(url_for('login'))
+
+        if request.method == 'POST':
+            ticker_symbol = request.form['ticker']
+            condition = request.form['condition']
+            price = float(request.form['price'])
+            add_alert(session['username'], ticker_symbol, condition, price)
+            flash(f"Alert set for {ticker_symbol}: {condition} ${price}", 'success')
+
+        alerts = get_user_alerts(session['username'])
+        return render_template('alerts.html', alerts=alerts)
+
+    @app.route('/remove_alert/<ticker_symbol>', methods=['POST'])
+    def remove_alert_route(ticker_symbol):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+
+        remove_alert(session['username'], ticker_symbol)
+        flash(f"Alert removed for {ticker_symbol}", 'info')
+        return redirect(url_for('alerts'))
