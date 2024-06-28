@@ -1,8 +1,9 @@
 from flask import render_template, request, redirect, session, url_for, flash
+from flask_socketio import SocketIO, emit
 from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert
-from operations import db 
+from operations import db
 
-def init_routes(app):
+def init_routes(app, socketio):
     @app.route('/')
     def index():
         if 'username' not in session or session['username'] != 'admin':
@@ -35,6 +36,7 @@ def init_routes(app):
             return redirect(url_for('login'))
         ticker_symbol = request.form['ticker']
         fetch_and_store_data(ticker_symbol)
+        socketio.emit('update_stock', {'ticker': ticker_symbol})
         return redirect('/show?ticker=' + ticker_symbol)
 
     @app.route('/show')
@@ -54,12 +56,6 @@ def init_routes(app):
         else:
             return f"Data not found for {ticker_symbol}!"
 
-    @app.before_request
-    def before_request():
-        allowed_routes = ['login']
-        if 'username' not in session and request.endpoint not in allowed_routes:
-            return redirect(url_for('login'))
-        
     @app.route('/alerts', methods=['GET', 'POST'])
     def alerts():
         if 'username' not in session:
@@ -71,6 +67,7 @@ def init_routes(app):
             price = float(request.form['price'])
             add_alert(session['username'], ticker_symbol, condition, price)
             flash(f"Alert set for {ticker_symbol}: {condition} ${price}", 'success')
+            socketio.emit('new_alert', {'ticker': ticker_symbol, 'condition': condition, 'price': price})
 
         alerts = get_user_alerts(session['username'])
         return render_template('alerts.html', alerts=alerts)
@@ -82,4 +79,11 @@ def init_routes(app):
 
         remove_alert(session['username'], ticker_symbol)
         flash(f"Alert removed for {ticker_symbol}", 'info')
+        socketio.emit('remove_alert', {'ticker': ticker_symbol})
         return redirect(url_for('alerts'))
+
+    @app.before_request
+    def before_request():
+        allowed_routes = ['login']
+        if 'username' not in session and request.endpoint not in allowed_routes:
+            return redirect(url_for('login'))

@@ -3,16 +3,16 @@ import pandas as pd
 from pymongo import MongoClient
 from bokeh.plotting import figure
 from bokeh.embed import components
-from bokeh.models import HoverTool
+from bokeh.models import HoverTool, ColumnDataSource
 from bokeh.resources import CDN
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client.stock_data
 
 # Function to fetch and store data in MongoDB
-def fetch_and_store_data(ticker_symbol):
+def fetch_and_store_data(ticker_symbol, period='6mo'):
     ticker = yf.Ticker(ticker_symbol)
-    hist = ticker.history(period="6mo")
+    hist = ticker.history(period=period)
     hist.reset_index(inplace=True)
     hist_dict = hist.to_dict(orient="records")
     
@@ -51,27 +51,17 @@ def get_recommendation(data):
 def create_detailed_plot(data):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
-
-    plot_height = 400 
-    num_records = len(df)
     
-    num_visible_points = 50
-    if num_records > num_visible_points:
-        start_index = num_records - num_visible_points
-    else:
-        start_index = 0
+    p = figure(x_axis_type="datetime", title="Stock Price Movement", width=800, height=400)
+    source = ColumnDataSource(df)
     
-    p = figure(x_axis_type="datetime", title="Stock Price Movement", width=800, height=plot_height)
-    p.line(df['Date'], df['Close'], color='navy', legend_label='Close Price')
-    p.line(df['Date'], df['Close'].rolling(window=20).mean(), color='orange', legend_label='20-Day MA')
-    p.line(df['Date'], df['Close'].rolling(window=50).mean(), color='green', legend_label='50-Day MA')
+    p.line('Date', 'Close', color='navy', legend_label='Close Price', source=source)
+    p.line('Date', 'MA20', color='orange', legend_label='20-Day MA', source=source)
+    p.line('Date', 'MA50', color='green', legend_label='50-Day MA', source=source)
     
-    tooltips = [
-        ("Date", "@x{%F}"),
-        ("Close", "@y{0.2f}")
-    ]
+    tooltips = [("Date", "@Date{%F}"), ("Close", "@Close{0.2f}")]
     
-    hover_tool = HoverTool(tooltips=tooltips, formatters={'@x': 'datetime'})
+    hover_tool = HoverTool(tooltips=tooltips, formatters={'@Date': 'datetime'})
     p.add_tools(hover_tool)
     
     p.legend.location = "top_left"
@@ -88,7 +78,6 @@ def create_detailed_plot(data):
 def validate_user(username, password):
     user = db.users.find_one({"username": username, "password": password})
     return user
-
 
 # Function to add or update an alert
 def add_alert(username, ticker_symbol, condition, price):
