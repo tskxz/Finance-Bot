@@ -74,7 +74,7 @@ def create_detailed_plot(data):
     cdn_js = CDN.js_files[0] if CDN.js_files else None
     cdn_css = CDN.css_files[0] if CDN.css_files else None
     
-    return script, div, cdn_css, cdn_js
+    return script, div, cdn_js, cdn_css
 
 # Function to validate user credentials
 def validate_user(username, password):
@@ -108,7 +108,7 @@ def remove_alert(username, ticker_symbol):
     alerts_collection.delete_one({"username": username, "ticker_symbol": ticker_symbol})
 
 # Function to check for triggered alerts based on simulated price changes
-def check_alerts_simulated(ticker_symbol, simulated_price):
+def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
     alerts_collection = db.alerts
     alerts = list(alerts_collection.find({"ticker_symbol": ticker_symbol}))
 
@@ -117,16 +117,16 @@ def check_alerts_simulated(ticker_symbol, simulated_price):
         price = alert['price']
         if (condition == "above" and simulated_price > price) or (condition == "below" and simulated_price < price):
             # Notify the user
-            emit('price_alert', {
+            socketio.emit('price_alert', {
                 'ticker': ticker_symbol,
                 'condition': condition,
                 'price': price,
                 'current_price': simulated_price
-            }, namespace='/')
+            })
 
 # Function to simulate data changes and check alerts
-def simulate_data_changes(ticker_symbol):
+def simulate_data_changes(socketio, ticker_symbol):
     # Simulate a price for testing purposes
     simulated_price = random.uniform(75, 76)  # Change this range as needed
-    check_alerts_simulated(ticker_symbol, simulated_price)
+    check_alerts_simulated(socketio, ticker_symbol, simulated_price)
     return simulated_price

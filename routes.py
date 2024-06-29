@@ -36,7 +36,7 @@ def init_routes(app, socketio):
             return redirect(url_for('login'))
         ticker_symbol = request.form['ticker']
         fetch_and_store_data(ticker_symbol)
-        socketio.emit('update_stock', {'ticker': ticker_symbol}, broadcast=True)
+        socketio.emit('update_stock', {'ticker': ticker_symbol})
         return redirect('/show?ticker=' + ticker_symbol)
 
     @app.route('/show')
@@ -67,7 +67,7 @@ def init_routes(app, socketio):
             price = float(request.form['price'])
             add_alert(session['username'], ticker_symbol, condition, price)
             flash(f"Alert set for {ticker_symbol}: {condition} ${price}", 'success')
-            socketio.emit('new_alert', {'ticker': ticker_symbol, 'condition': condition, 'price': price}, broadcast=True)
+            socketio.emit('new_alert', {'ticker': ticker_symbol, 'condition': condition, 'price': price})
 
         alerts = get_user_alerts(session['username'])
         return render_template('alerts.html', alerts=alerts)
@@ -79,7 +79,7 @@ def init_routes(app, socketio):
 
         remove_alert(session['username'], ticker_symbol)
         flash(f"Alert removed for {ticker_symbol}", 'info')
-        socketio.emit('remove_alert', {'ticker': ticker_symbol}, broadcast=True)
+        socketio.emit('remove_alert', {'ticker': ticker_symbol})
         return redirect(url_for('alerts'))
     
     @app.route('/get_alerts')
@@ -89,7 +89,7 @@ def init_routes(app, socketio):
 
         alerts = get_user_alerts(session['username'])
         return jsonify({'alerts': alerts})
-
+    
     @app.before_request
     def before_request():
         allowed_routes = ['login']
@@ -110,6 +110,6 @@ def init_routes(app, socketio):
             return redirect(url_for('login'))
         
         ticker_symbol = request.form['ticker']
-        simulated_price = simulate_data_changes(ticker_symbol)
+        simulated_price = simulate_data_changes(socketio, ticker_symbol)
         flash(f"Simulated price for {ticker_symbol}: ${simulated_price:.2f}", 'info')
         return redirect(url_for('alerts'))
