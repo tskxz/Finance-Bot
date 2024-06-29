@@ -7,11 +7,16 @@ from bokeh.models import HoverTool, ColumnDataSource
 from bokeh.resources import CDN
 from flask_socketio import emit
 import random
+from bson import ObjectId
 
-client = MongoClient("mongodb://localhost:27017/")
-db = client.stock_data
+try:
+    client = MongoClient("mongodb://localhost:27017/")
+    db = client.stock_data
+    print("MongoDB connection established successfully.")
+except Exception as e:
+    print(f"Error connecting to MongoDB: {e}")
+    raise
 
-# Function to fetch and store data in MongoDB
 def fetch_and_store_data(ticker_symbol, period='6mo'):
     ticker = yf.Ticker(ticker_symbol)
     hist = ticker.history(period=period)
@@ -20,7 +25,6 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
     
     company_name = ticker.info.get('shortName', 'Unknown Firm')
     
-    # Store data in MongoDB
     stocks_collection = db.stocks
     stocks_collection.update_one(
         {"symbol": ticker_symbol},
@@ -28,7 +32,6 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
         upsert=True
     )
 
-# Function to get recommendation based on data
 def get_recommendation(data):
     df = pd.DataFrame(data)
     df['MA20'] = df['Close'].rolling(window=20).mean()
@@ -49,7 +52,6 @@ def get_recommendation(data):
     
     return recommendation, explanation
 
-# Function to create detailed plot using Bokeh
 def create_detailed_plot(data):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
@@ -76,12 +78,10 @@ def create_detailed_plot(data):
     
     return script, div, cdn_js, cdn_css
 
-# Function to validate user credentials
 def validate_user(username, password):
     user = db.users.find_one({"username": username, "password": password})
     return user
 
-# Function to add or update an alert
 def add_alert(username, ticker_symbol, condition, price):
     alerts_collection = db.alerts
     alert = {
@@ -96,18 +96,25 @@ def add_alert(username, ticker_symbol, condition, price):
         upsert=True
     )
 
-# Function to get alerts for a specific user
 def get_user_alerts(username):
-    alerts_collection = db.alerts
-    alerts = list(alerts_collection.find({"username": username}))
-    return alerts
+    try:
+        alerts_collection = db.alerts
+        alerts = list(alerts_collection.find({"username": username}))
+        
+        for alert in alerts:
+            if '_id' in alert:
+                alert['_id'] = str(alert['_id'])
+        
+        print(f"Fetched alerts for {username}: {alerts}")
+        return alerts
+    except Exception as e:
+        print(f"Error in get_user_alerts: {e}")
+        raise
 
-# Function to remove an alert
 def remove_alert(username, ticker_symbol):
     alerts_collection = db.alerts
     alerts_collection.delete_one({"username": username, "ticker_symbol": ticker_symbol})
 
-# Function to check for triggered alerts based on simulated price changes
 def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
     alerts_collection = db.alerts
     alerts = list(alerts_collection.find({"ticker_symbol": ticker_symbol}))
@@ -116,7 +123,6 @@ def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
         condition = alert['condition']
         price = alert['price']
         if (condition == "above" and simulated_price > price) or (condition == "below" and simulated_price < price):
-            # Notify the user
             socketio.emit('price_alert', {
                 'ticker': ticker_symbol,
                 'condition': condition,
@@ -124,9 +130,7 @@ def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
                 'current_price': simulated_price
             })
 
-# Function to simulate data changes and check alerts
 def simulate_data_changes(socketio, ticker_symbol):
-    # Simulate a price for testing purposes
-    simulated_price = random.uniform(75, 76)  # Change this range as needed
+    simulated_price = random.uniform(75, 76)
     check_alerts_simulated(socketio, ticker_symbol, simulated_price)
     return simulated_price

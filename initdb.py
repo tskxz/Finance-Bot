@@ -4,7 +4,6 @@ def init_database():
     client = MongoClient("mongodb://localhost:27017/")
     db = client.stock_data
     
-    # Define collections and their schemas
     collections = [
         {
             "name": "users",
@@ -103,7 +102,6 @@ def init_database():
         }
     ]
     
-# Create collections and indexes
     for collection_info in collections:
         collection_name = collection_info['name']
         schema = collection_info['schema']
@@ -112,16 +110,11 @@ def init_database():
             db.create_collection(collection_name)
             print(f"Collection '{collection_name}' created.")
             
-            # Create indexes if needed
             if collection_name == "users":
                 db.users.create_index([("username", 1)], unique=True)
                 db.users.create_index([("email", 1)], unique=True)
             elif collection_name == "stocks":
                 db.stocks.create_index([("symbol", 1)], unique=True)
-            # Add more indexes as per your application needs
-            
-            # Insert initial data if needed (example)
-            # Note: No data insertion in initdb.py, only collection creation
 
         else:
             print(f"Collection '{collection_name}' already exists.")

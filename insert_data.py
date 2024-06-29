@@ -3,13 +3,11 @@ from pymongo import MongoClient
 client = MongoClient("mongodb://localhost:27017/")
 db = client.stock_data
 
-# Function to insert initial data
 def insert_initial_data():
-    # Insert initial users
     users = [
         {
             "username": "admin",
-            "password": "admin123",  # Replace with actual plain text password
+            "password": "admin123",
             "email": "admin@example.com",
             "created_at": None,
             "updated_at": None,
@@ -20,7 +18,7 @@ def insert_initial_data():
         },
         {
             "username": "user",
-            "password": "user456",  # Replace with actual plain text password
+            "password": "user456",
             "email": "user@example.com",
             "created_at": None,
             "updated_at": None,
@@ -31,11 +29,9 @@ def insert_initial_data():
         }
     ]
 
-    # Insert users
     db.users.insert_many(users)
     print("Initial users inserted.")
 
-    # Insert initial stocks data
     stocks = [
         {
             "symbol": "AAPL",
@@ -51,7 +47,6 @@ def insert_initial_data():
                     "Close": 143.0,
                     "Volume": 1000000
                 },
-                # Add more historical data as needed
             ]
         },
         {
@@ -68,16 +63,13 @@ def insert_initial_data():
                     "Close": 203.0,
                     "Volume": 800000
                 },
-                # Add more historical data as needed
             ]
         }
     ]
 
-    # Insert stocks
     db.stocks.insert_many(stocks)
     print("Initial stocks data inserted.")
 
-    # Insert initial recommendations
     recommendations = [
         {
             "symbol": "AAPL",
@@ -93,11 +85,9 @@ def insert_initial_data():
         }
     ]
 
-    # Insert recommendations
     db.recommendations.insert_many(recommendations)
     print("Initial recommendations inserted.")
 
-    # Insert initial user preferences
     user_preferences = [
         {
             "user_id": "admin",
@@ -113,11 +103,9 @@ def insert_initial_data():
         }
     ]
 
-    # Insert user preferences
     db.user_preferences.insert_many(user_preferences)
     print("Initial user preferences inserted.")
 
-    # Insert initial alerts
     alerts = [
         {
             "user_id": "admin",
@@ -137,7 +125,6 @@ def insert_initial_data():
         }
     ]
 
-    # Insert alerts
     db.alerts.insert_many(alerts)
     print("Initial alerts inserted.")
 

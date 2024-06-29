@@ -55,7 +55,6 @@ header a:hover {
     font-weight: bold;
 }
 
-/* Navbar specific styles */
 .navbar {
     background-color: #333;
     overflow: hidden;
@@ -164,24 +163,6 @@ footer {
     background-color: #333;
     text-align: center;
 }
-
-.toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-}
-
-.toast.show {
-    opacity: 1;
-}
     </style>
 </head>
 <body>
@@ -197,7 +178,6 @@ footer {
         <form id="alert-form" action="{{ url_for('alerts') }}" method="post">
             <label for="ticker">Ticker Symbol:</label>
             <input type="text" id="ticker" name="ticker" required>
-            
             <label for="condition">Condition:</label>
             <select id="condition" name="condition">
                 <option value="above">Above</option>
@@ -292,8 +272,8 @@ footer {
             document.body.appendChild(alertMessage);
             setTimeout(() => {
                 alertMessage.remove();
-                location.reload();
             }, 5000);
+            location.reload();
         });
     
         socket.on('remove_alert', data => {
@@ -303,8 +283,8 @@ footer {
             document.body.appendChild(alertMessage);
             setTimeout(() => {
                 alertMessage.remove();
-                location.reload();
             }, 5000);
+            location.reload();
         });
     
         socket.on('update_alerts', alerts => {
@@ -327,12 +307,37 @@ footer {
                 });
         });
     
+        document.addEventListener('DOMContentLoaded', function() {
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+    
+            socket.on('connect', function() {
+                console.log('Connected to server.');
+            });
+    
+            socket.on('new_alert', function(data) {
+                var ticker = data.ticker;
+                var condition = data.condition;
+                var price = data.price;
+    
+                console.log(`Alert: ${ticker} ${condition} ${price}`);
+    
+                swal({
+                    title: `Alert: ${ticker}`,
+                    text: `${ticker} has reached ${condition} $${price}`,
+                    icon: 'warning',
+                    button: 'OK',
+                });
+            });
+        });
+    
         socket.on('price_alert', data => {
             const alertMessage = document.createElement('div');
             alertMessage.classList.add('alert-message');
             alertMessage.innerText = `Price alert for ${data.ticker}: ${data.condition} ${data.price}. Current price: ${data.current_price}`;
             document.body.appendChild(alertMessage);
-            setTimeout(() => alertMessage.remove(), 5000);
+            setTimeout(() => {
+                alertMessage.remove();
+            }, 5000);
         });
     </script>
 </body>

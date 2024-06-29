@@ -87,8 +87,13 @@ def init_routes(app, socketio):
         if 'username' not in session:
             return redirect(url_for('login'))
 
-        alerts = get_user_alerts(session['username'])
-        return jsonify({'alerts': alerts})
+        try:
+            alerts = get_user_alerts(session['username'])
+            print(f"Alerts for user {session['username']}: {alerts}")
+            return jsonify({'alerts': alerts})
+        except Exception as e:
+            print(f"Error fetching alerts: {e}")
+            return jsonify({'error': str(e)}), 500
     
     @app.before_request
     def before_request():
