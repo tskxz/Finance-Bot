@@ -1,0 +1,110 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+header {
+    background: #333;
+    color: #fff;
+    padding-top: 30px;
+    min-height: 70px;
+    border-bottom: #77b300 3px solid;
+}
+
+header a {
+    color: #fff;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 16px;
+}
+
+header ul {
+    padding: 0;
+    list-style: none;
+}
+
+header li {
+    display: inline;
+    padding: 0 20px 0 20px;
+}
+
+header .highlight, header .current a {
+    color: #77b300;
+    font-weight: bold;
+}
+
+header a:hover {
+    color: #cccccc;
+    font-weight: bold;
+}
+
+form {
+    margin: 20px 0;
+}
+
+form input, form select, form button {
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+form button {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+form button:hover {
+    background: #77b300;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+.alerts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.alerts-table, .alerts-table th, .alerts-table td {
+    border: 1px solid #ddd;
+}
+
+.alerts-table th, .alerts-table td {
+    padding: 10px;
+    text-align: left;
+}
+
+.alerts-table th {
+    background-color: #f4f4f4;
+}
+
+#alerts-table {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.alert-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #ffeb3b;
+    padding: 15px;
+    border: 1px solid #fbc02d;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}

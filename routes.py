@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, session, url_for, flash
+from flask import render_template, request, redirect, session, url_for, flash, jsonify
 from flask_socketio import SocketIO, emit
 from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert
 from operations import db
@@ -81,9 +81,26 @@ def init_routes(app, socketio):
         flash(f"Alert removed for {ticker_symbol}", 'info')
         socketio.emit('remove_alert', {'ticker': ticker_symbol})
         return redirect(url_for('alerts'))
+    
+    @app.route('/get_alerts')
+    def get_alerts():
+        if 'username' not in session:
+            return redirect(url_for('login'))
+
+        alerts = get_user_alerts(session['username'])
+        return jsonify({'alerts': alerts})
 
     @app.before_request
     def before_request():
         allowed_routes = ['login']
         if 'username' not in session and request.endpoint not in allowed_routes:
             return redirect(url_for('login'))
+        
+
+    @socketio.on('connect')
+    def handle_connect():
+        print('Client connected')
+
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        print('Client disconnected')

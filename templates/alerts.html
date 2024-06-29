@@ -3,26 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Set Alerts</title>
-    <link rel="stylesheet" href="{{ cdn_css }}">
+    <title>Stock Alerts</title>
+    <link rel="stylesheet" href="/static/alerts.css">
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
     <style>
-
+/* Global styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Ensure full viewport height */
 }
 
 .container {
     width: 80%;
-    max-width: 800px;
     margin: auto;
     overflow: hidden;
-    flex: 1; /* Fill remaining vertical space */
 }
 
 header {
@@ -50,8 +46,7 @@ header li {
     padding: 0 20px 0 20px;
 }
 
-header .highlight,
-header .current a {
+header .highlight, header .current a {
     color: #77b300;
     font-weight: bold;
 }
@@ -61,208 +56,271 @@ header a:hover {
     font-weight: bold;
 }
 
-.logout-btn {
-    background-color: #dc3545;
+/* Navbar specific styles */
+.navbar {
+    background-color: #333;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar a {
+    float: left;
+    display: block;
     color: #fff;
-    padding: 12px 24px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
     font-size: 16px;
 }
 
-.logout-btn:hover {
-    background-color: #c82333;
+.navbar a:hover {
+    background-color: #77b300;
 }
 
-.alerts-heading {
-    background-color: #007bff;
-    color: #fff;
-    padding: 15px;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    margin-bottom: 20px;
+.navbar .logo {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
     font-size: 20px;
 }
 
-.alerts-list {
-    list-style: none;
-    padding: 0;
-    overflow-y: auto; /* Enable vertical scrolling */
-    max-height: calc(2 * (20px + 20px + 20px + 20px + 2 * 5px)); /* Limit height for 2 alerts */
+.navbar .logout-btn {
+    float: right;
 }
 
-.alert {
-    background-color: #f8f9fa;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-left: 5px solid #007bff;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
-}
-
-.alert:hover {
-    transform: translateY(-5px);
-}
-
-.alert-content {
-    flex: 1;
-    font-size: 16px;
-    line-height: 1.5;
-}
-
-.alert-actions button {
-    background-color: #dc3545;
+/* Showcase and main content area styles (if applicable) */
+#showcase {
+    max-height: 500px;
+    background-color: #77b300;
+    text-align: center;
     color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 10px;
-    font-size: 14px;
-    transition: background-color 0.3s ease-in-out;
 }
 
-.alert-actions button:hover {
-    background-color: #c82333;
-}
-
-.form-container {
-    background-color: #f4f4f4;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    font-weight: bold;
-    display: block;
+#showcase h1 {
+    margin-top: 100px;
+    font-size: 55px;
     margin-bottom: 10px;
 }
 
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group select {
-    padding: 12px;
-    width: 760px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.3s ease-in-out;
+#showcase p {
+    font-size: 20px;
 }
 
-.form-group input[type="text"]:focus,
-.form-group input[type="number"]:focus,
-.form-group select:focus {
-    border-color: #007bff;
-    outline: none;
+#main {
+    padding: 20px;
+    background: #fff;
 }
 
-.form-group select {
-    appearance: none; /* Remove default select arrow */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23007BFF'%3E%3Cpath d='M6.5 7.5l3.25 3.25 3.25-3.25z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position-x: calc(100% - 12px);
-    background-position-y: center;
-    padding-right: 30px; /* Adjust as per icon size */
+/* Form and input styles */
+form {
+    margin: 20px 0;
 }
 
-.form-actions {
-    text-align: right;
+form input, form select, form button {
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
 }
 
-.form-actions button {
-    background-color: #007bff;
+form button {
+    background-color: #333;
     color: #fff;
     border: none;
-    padding: 12px 24px;
-    border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease-in-out;
 }
 
-.form-actions button:hover {
-    background-color: #0056b3;
+form button:hover {
+    background: #77b300;
 }
 
+/* Table styles */
+.table-wrapper {
+    max-height: 200px; /* Adjust this height to control the number of visible rows */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f4f4f4;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* Footer styles */
 footer {
     padding: 20px;
+    margin-top: 20px;
     color: #fff;
     background-color: #333;
     text-align: center;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
 }
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('alerts') }}">Alerts</a></li>
-                <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="navbar">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('alerts') }}">Alerts</a>
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+    </div>
 
     <div class="container">
-        <h1>Set Alerts</h1>
+        <h1>Stock Alerts</h1>
 
-        <form action="/alerts" method="post" id="alert-form">
-            <div class="form-container">
-                <div class="form-group">
-                    <label for="ticker">Ticker Symbol:</label>
-                    <input type="text" id="ticker" name="ticker" required>
-                </div>
-                <div class="form-group">
-                    <label for="condition">Condition:</label>
-                    <select id="condition" name="condition" required>
-                        <option value="above">Above</option>
-                        <option value="below">Below</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="price">Price:</label>
-                    <input type="number" id="price" name="price" step="0.01" required>
-                </div>
-                <div class="form-actions">
-                    <button type="submit">Set Alert</button>
-                </div>
-            </div>
+        <form id="alert-form" action="{{ url_for('alerts') }}" method="post">
+            <label for="ticker">Ticker Symbol:</label>
+            <input type="text" id="ticker" name="ticker" required>
+            
+            <label for="condition">Condition:</label>
+            <select id="condition" name="condition">
+                <option value="above">Above</option>
+                <option value="below">Below</option>
+            </select>
+
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" step="0.01" required>
+            
+            <button type="submit">Add Alert</button>
         </form>
 
-        <div class="alerts-list">
-            <h2 class="alerts-heading">Current Alerts</h2>
-            {% for alert in alerts %}
-            <div class="alert">
-                <div class="alert-content">
-                    <p><strong>{{ alert['ticker_symbol'] }}</strong> - {{ alert['condition'] }} ${{ alert['price'] }}</p>
-                </div>
-                <div class="alert-actions">
-                    <form action="/remove_alert/{{ alert['ticker_symbol'] }}" method="post">
-                        <button type="submit">Remove Alert</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
+        <h2>Your Alerts</h2>
+        <div id="alerts-table">
+            <table class="alerts-table">
+                <tr>
+                    <th>Ticker</th>
+                    <th>Condition</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+                {% for alert in alerts %}
+                <tr>
+                    <td>{{ alert['ticker_symbol'] }}</td>
+                    <td>{{ alert['condition'] }}</td>
+                    <td>{{ alert['price'] }}</td>
+                    <td><form action="{{ url_for('remove_alert_route', ticker_symbol=alert['ticker_symbol']) }}" method="post"><button type="submit">Remove</button></form></td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2024 Your Company. All rights reserved.</p>
-    </footer>
+    <script>
+        const socket = io.connect('http://' + document.domain + ':' + location.port);
 
+        function updateAlertsTable(alerts) {
+            const tableDiv = document.getElementById('alerts-table');
+            tableDiv.innerHTML = `
+                <table class="alerts-table">
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Condition</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </table>
+            `;
+
+            const table = tableDiv.querySelector('.alerts-table');
+
+            alerts.forEach(alert => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${alert.ticker_symbol}</td>
+                    <td>${alert.condition}</td>
+                    <td>${alert.price}</td>
+                    <td><form action="/remove_alert/${alert.ticker_symbol}" method="post"><button type="submit">Remove</button></form></td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function removeAlert(ticker_symbol) {
+            fetch('/remove_alert/' + ticker_symbol, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        socket.emit('remove_alert', { ticker: ticker_symbol });
+                    }
+                });
+        }
+
+        socket.on('connect', () => {
+            console.log('Connected to the server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from the server');
+        });
+
+        socket.on('new_alert', data => {
+            const alertMessage = document.createElement('div');
+            alertMessage.classList.add('alert-message');
+            alertMessage.innerText = `New alert set for ${data.ticker}: ${data.condition} ${data.price}`;
+            document.body.appendChild(alertMessage);
+            setTimeout(() => alertMessage.remove(), 5000);
+            location.reload();
+        });
+
+        socket.on('remove_alert', data => {
+            const alertMessage = document.createElement('div');
+            alertMessage.classList.add('alert-message');
+            alertMessage.innerText = `Alert removed for ${data.ticker}`;
+            document.body.appendChild(alertMessage);
+            setTimeout(() => alertMessage.remove(), 5000);
+            location.reload();
+        });
+
+        socket.on('update_alerts', alerts => {
+            updateAlertsTable(alerts);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/get_alerts')
+                .then(response => response.json())
+                .then(data => {
+                    updateAlertsTable(data.alerts);
+                });
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    socket.on('connect', function() {
+        console.log('Connected to server.');
+    });
+
+    socket.on('new_alert', function(data) {
+        var ticker = data.ticker;
+        var condition = data.condition;
+        var price = data.price;
+
+        // Example: Displaying alert in console
+        console.log(`Alert: ${ticker} ${condition} ${price}`);
+
+        // Example: Displaying alert as a popup using SweetAlert library
+        swal({
+            title: `Alert: ${ticker}`,
+            text: `${ticker} has reached ${condition} $${price}`,
+            icon: 'warning',
+            button: 'OK',
+        });
+    });
+});
+    </script>
 </body>
 </html>
