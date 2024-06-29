@@ -111,7 +111,7 @@ th {
 }
 
 .table-wrapper {
-    max-height: 200px; /* Adjust this height to control the number of visible rows */
+    max-height: 200px;
     overflow-y: auto;
     border: 1px solid #ddd;
 }

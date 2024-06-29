@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/static/alerts.css">
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
     <style>
-/* Global styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -90,7 +89,6 @@ header a:hover {
     float: right;
 }
 
-/* Showcase and main content area styles (if applicable) */
 #showcase {
     max-height: 500px;
     background-color: #77b300;
@@ -113,7 +111,6 @@ header a:hover {
     background: #fff;
 }
 
-/* Form and input styles */
 form {
     margin: 20px 0;
 }
@@ -137,9 +134,8 @@ form button:hover {
     background: #77b300;
 }
 
-/* Table styles */
 .table-wrapper {
-    max-height: 200px; /* Adjust this height to control the number of visible rows */
+    max-height: 200px;
     overflow-y: auto;
     border: 1px solid #ddd;
 }
@@ -161,7 +157,6 @@ th {
     z-index: 1;
 }
 
-/* Footer styles */
 footer {
     padding: 20px;
     margin-top: 20px;
@@ -195,6 +190,12 @@ footer {
             <input type="number" id="price" name="price" step="0.01" required>
             
             <button type="submit">Add Alert</button>
+        </form>
+
+        <form action="{{ url_for('simulate_alert') }}" method="POST">
+            <label for="ticker">Ticker Symbol:</label>
+            <input type="text" id="ticker" name="ticker" required>
+            <button type="submit">Simulate Alert</button>
         </form>
 
         <h2>Your Alerts</h2>
@@ -320,6 +321,17 @@ footer {
             button: 'OK',
         });
     });
+});
+
+
+// Testing
+
+socket.on('price_alert', data => {
+    const alertMessage = document.createElement('div');
+    alertMessage.classList.add('alert-message');
+    alertMessage.innerText = `Price alert for ${data.ticker}: ${data.condition} ${data.price}. Current price: ${data.current_price}`;
+    document.body.appendChild(alertMessage);
+    setTimeout(() => alertMessage.remove(), 5000);
 });
     </script>
 </body>

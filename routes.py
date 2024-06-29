@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
-from flask_socketio import SocketIO, emit
-from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert
+from flask_socketio import emit
+from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes
 from operations import db
 
 def init_routes(app, socketio):
@@ -36,7 +36,7 @@ def init_routes(app, socketio):
             return redirect(url_for('login'))
         ticker_symbol = request.form['ticker']
         fetch_and_store_data(ticker_symbol)
-        socketio.emit('update_stock', {'ticker': ticker_symbol})
+        socketio.emit('update_stock', {'ticker': ticker_symbol}, broadcast=True)
         return redirect('/show?ticker=' + ticker_symbol)
 
     @app.route('/show')
@@ -67,7 +67,7 @@ def init_routes(app, socketio):
             price = float(request.form['price'])
             add_alert(session['username'], ticker_symbol, condition, price)
             flash(f"Alert set for {ticker_symbol}: {condition} ${price}", 'success')
-            socketio.emit('new_alert', {'ticker': ticker_symbol, 'condition': condition, 'price': price})
+            socketio.emit('new_alert', {'ticker': ticker_symbol, 'condition': condition, 'price': price}, broadcast=True)
 
         alerts = get_user_alerts(session['username'])
         return render_template('alerts.html', alerts=alerts)
@@ -79,7 +79,7 @@ def init_routes(app, socketio):
 
         remove_alert(session['username'], ticker_symbol)
         flash(f"Alert removed for {ticker_symbol}", 'info')
-        socketio.emit('remove_alert', {'ticker': ticker_symbol})
+        socketio.emit('remove_alert', {'ticker': ticker_symbol}, broadcast=True)
         return redirect(url_for('alerts'))
     
     @app.route('/get_alerts')
@@ -96,7 +96,6 @@ def init_routes(app, socketio):
         if 'username' not in session and request.endpoint not in allowed_routes:
             return redirect(url_for('login'))
         
-
     @socketio.on('connect')
     def handle_connect():
         print('Client connected')
@@ -104,3 +103,13 @@ def init_routes(app, socketio):
     @socketio.on('disconnect')
     def handle_disconnect():
         print('Client disconnected')
+
+    @app.route('/simulate_alert', methods=['POST'])
+    def simulate_alert():
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        
+        ticker_symbol = request.form['ticker']
+        simulated_price = simulate_data_changes(ticker_symbol)
+        flash(f"Simulated price for {ticker_symbol}: ${simulated_price:.2f}", 'info')
+        return redirect(url_for('alerts'))

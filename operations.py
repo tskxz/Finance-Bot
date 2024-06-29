@@ -5,6 +5,8 @@ from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.models import HoverTool, ColumnDataSource
 from bokeh.resources import CDN
+from flask_socketio import emit
+import random
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client.stock_data
@@ -104,3 +106,27 @@ def get_user_alerts(username):
 def remove_alert(username, ticker_symbol):
     alerts_collection = db.alerts
     alerts_collection.delete_one({"username": username, "ticker_symbol": ticker_symbol})
+
+# Function to check for triggered alerts based on simulated price changes
+def check_alerts_simulated(ticker_symbol, simulated_price):
+    alerts_collection = db.alerts
+    alerts = list(alerts_collection.find({"ticker_symbol": ticker_symbol}))
+
+    for alert in alerts:
+        condition = alert['condition']
+        price = alert['price']
+        if (condition == "above" and simulated_price > price) or (condition == "below" and simulated_price < price):
+            # Notify the user
+            emit('price_alert', {
+                'ticker': ticker_symbol,
+                'condition': condition,
+                'price': price,
+                'current_price': simulated_price
+            }, namespace='/')
+
+# Function to simulate data changes and check alerts
+def simulate_data_changes(ticker_symbol):
+    # Simulate a price for testing purposes
+    simulated_price = random.uniform(75, 76)  # Change this range as needed
+    check_alerts_simulated(ticker_symbol, simulated_price)
+    return simulated_price
