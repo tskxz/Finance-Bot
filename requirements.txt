@@ -1,9 +1,9 @@
-Flask 
-pymongo 
-pandas 
-matplotlib 
+Flask
+pymongo
+pandas
+matplotlib
 requests
 bokeh
 yfinance
-Flask-SocketIO 
+Flask-SocketIO
 eventlet
