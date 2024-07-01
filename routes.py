@@ -48,11 +48,13 @@ def init_routes(app, socketio):
         
         if stock_data:
             data = stock_data['history']
-            recommendation, explanation = get_recommendation(data)
+            financials = stock_data.get('financials', {})
+            recommendation, explanation = get_recommendation(data, financials)
             plot_script, plot_div, cdn_css, cdn_js = create_detailed_plot(data)
             firm_name = stock_data.get('name', 'Unknown Firm') 
             return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation,
-            plot_script=plot_script, plot_div=plot_div, firm_name=firm_name, ticker=ticker_symbol, cdn_css=cdn_css, cdn_js=cdn_js)
+                                   plot_script=plot_script, plot_div=plot_div, firm_name=firm_name, ticker=ticker_symbol,
+                                   cdn_css=cdn_css, cdn_js=cdn_js)
         else:
             return f"Data not found for {ticker_symbol}!"
 
@@ -81,7 +83,7 @@ def init_routes(app, socketio):
         flash(f"Alert removed for {ticker_symbol}", 'info')
         socketio.emit('remove_alert', {'ticker': ticker_symbol})
         return redirect(url_for('alerts'))
-    
+
     @app.route('/get_alerts')
     def get_alerts():
         if 'username' not in session:
@@ -94,13 +96,13 @@ def init_routes(app, socketio):
         except Exception as e:
             print(f"Error fetching alerts: {e}")
             return jsonify({'error': str(e)}), 500
-    
+
     @app.before_request
     def before_request():
         allowed_routes = ['login']
         if 'username' not in session and request.endpoint not in allowed_routes:
             return redirect(url_for('login'))
-        
+
     @socketio.on('connect')
     def handle_connect():
         print('Client connected')
