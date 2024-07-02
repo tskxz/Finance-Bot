@@ -1,7 +1,8 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
-from flask_socketio import emit
-from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes
+from flask_socketio import emit, socketio
+from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time
 from operations import db
+import threading
 
 def init_routes(app, socketio):
     @app.route('/')
@@ -120,3 +121,6 @@ def init_routes(app, socketio):
         simulated_price = simulate_data_changes(socketio, ticker_symbol)
         flash(f"Simulated price for {ticker_symbol}: ${simulated_price:.2f}", 'info')
         return redirect(url_for('alerts'))
+
+# Start the real-time check in a separate thread
+threading.Thread(target=check_alerts_real_time, args=(socketio,), daemon=True).start()

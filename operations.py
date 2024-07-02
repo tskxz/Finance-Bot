@@ -5,8 +5,10 @@ from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.models import HoverTool, ColumnDataSource
 from bokeh.resources import CDN
-from flask_socketio import emit
+from flask_socketio import emit, socketio
 import random
+import time
+import threading
 from bson import ObjectId
 
 try:
@@ -235,6 +237,28 @@ def remove_alert(username, ticker_symbol):
     alerts_collection = db.alerts
     alerts_collection.delete_one({"username": username, "ticker_symbol": ticker_symbol})
 
+def check_alerts_real_time(socketio):
+    while True:
+        alerts_collection = db.alerts
+        alerts = list(alerts_collection.find())
+        
+        for alert in alerts:
+            ticker = yf.Ticker(alert['ticker_symbol'])
+            current_price = ticker.history(period='1d')['Close'].iloc[-1]
+            condition = alert['condition']
+            price = alert['price']
+            
+            if (condition == "above" and current_price > price) or (condition == "below" and current_price < price):
+                socketio.emit('price_alert', {
+                    'ticker': alert['ticker_symbol'],
+                    'condition': condition,
+                    'price': price,
+                    'current_price': current_price
+                })
+                alerts_collection.delete_one({"_id": ObjectId(alert['_id'])})
+        
+        time.sleep(300)  # Check every 5 minutes
+
 def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
     alerts_collection = db.alerts
     alerts = list(alerts_collection.find({"ticker_symbol": ticker_symbol}))
@@ -249,8 +273,12 @@ def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
                 'price': price,
                 'current_price': simulated_price
             })
+            alerts_collection.delete_one({"_id": ObjectId(alert['_id'])})
 
 def simulate_data_changes(socketio, ticker_symbol):
     simulated_price = random.uniform(75, 76)
     check_alerts_simulated(socketio, ticker_symbol, simulated_price)
     return simulated_price
+
+# Start the real-time check in a separate thread
+threading.Thread(target=check_alerts_real_time, args=(socketio,), daemon=True).start()
