@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Alerts</title>
-    <link rel="stylesheet" href="/static/alerts.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark/dark.css">
-    <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Alerts</title>
+<link rel="stylesheet" href="/static/alerts.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark/dark.css">
+<style>
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -163,9 +163,37 @@ footer {
     background-color: #333;
     text-align: center;
 }
+
+.alert {
+    padding: 20px;
+    background-color: #f44336;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.alert.success {background-color: #4CAF50;}
+.alert.info {background-color: #2196F3;}
+.alert.warning {background-color: #ff9800;}
+
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.closebtn:hover {
+    color: black;
+}
+
     </style>
 </head>
 <body>
+
     <div class="navbar">
         <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('alerts') }}">Alerts</a>
@@ -174,6 +202,17 @@ footer {
 
     <div class="container">
         <h1>Stock Alerts</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert {{ category }}">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
 
         <form id="alert-form" action="{{ url_for('alerts') }}" method="post">
             <label for="ticker">Ticker Symbol:</label>
@@ -221,19 +260,8 @@ footer {
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     const socket = io.connect('http://' + document.domain + ':' + location.port);
-
-    function showPopup(title, text, icon) {
-        Swal.fire({
-            title: title,
-            text: text,
-            icon: icon,
-            confirmButtonText: 'OK'
-        });
-    }
 
     function updateAlertsTable(alerts) {
         const tableDiv = document.getElementById('alerts-table');
@@ -272,13 +300,11 @@ footer {
 
     socket.on('new_alert', data => {
         console.log("New alert received:", data);
-        showPopup('New Alert Set', `Ticker: ${data.ticker}\nCondition: ${data.condition} ${data.price}`, 'success');
         location.reload();
     });
 
     socket.on('remove_alert', data => {
         console.log("Alert removed:", data);
-        showPopup('Alert Removed', `Ticker: ${data.ticker}`, 'info');
         location.reload();
     });
 
@@ -304,7 +330,6 @@ footer {
 
     socket.on('price_alert', data => {
         console.log("Price alert received:", data);
-        showPopup('Price Alert', `Ticker: ${data.ticker}\nCondition: ${data.condition} ${data.price}\nCurrent Price: ${data.current_price}`, 'warning');
     });
 </script>
     

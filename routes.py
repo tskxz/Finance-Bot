@@ -22,7 +22,7 @@ def init_routes(app, socketio):
                 session['username'] = user['username']
                 return redirect(url_for('index'))
             else:
-                flash('Invalid username or password')
+                flash('Invalid username or password', 'danger')
         return render_template('login.html')
 
     @app.route('/logout')
