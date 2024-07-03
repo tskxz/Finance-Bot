@@ -1,156 +1,155 @@
-# Personal Financial Project
+# Projeto Financeiro
 
-This project aims to create a web application for financial data analysis using Flask, MongoDB, and Bokeh. The application connects to Yahoo Finance to retrieve historical stock data, stores this data in MongoDB (a NoSQL database), and displays graphical visualizations of this data along with buy, sell, or hold recommendations based on simple moving averages.
+Este projeto tem como objetivo criar uma aplicação web para análise de dados financeiros utilizando Flask, MongoDB e Bokeh. A aplicação conecta-se ao Yahoo Finance para recuperar dados históricos de ações, armazena esses dados no MongoDB (uma base de dados NoSQL) e exibe visualizações gráficas desses dados juntamente com recomendações de compra, venda ou manutenção com base em médias móveis simples.
 
-## Features
+## Funcionalidades
 
-1. **Connection to Yahoo Finance:**
-   - The application connects to the Yahoo Finance API to retrieve historical stock data based on the user-provided symbol.
+1. **Conexão ao Yahoo Finance:**
+   - A aplicação conecta-se à API do Yahoo Finance para recuperar dados históricos de ações com base no símbolo fornecido pelo utilizador.
 
-2. **Storage in MongoDB:**
-   - The data retrieved from Yahoo Finance is stored in MongoDB. Each stock is stored as a document in the `stocks` collection in the `stock_data` database.
+2. **Armazenamento no MongoDB:**
+   - Os dados recuperados do Yahoo Finance são armazenados no MongoDB. Cada ação é armazenada como um documento na coleção `stocks` na base de dados `stock_data`.
 
-3. **Investment Analysis and Recommendation:**
-   - Based on the historical stock data, the application calculates 20-day and 50-day moving averages.
-   - A "Buy" recommendation is made if the 20-day moving average is above the 50-day moving average.
-   - A "Sell" recommendation is made if the 20-day moving average is below the 50-day moving average.
-   - A "Hold" recommendation is made if the moving averages do not show a clear pattern.
+3. **Análise de Investimento e Recomendação:**
+   - Com base nos dados históricos das ações, a aplicação calcula médias móveis de 20 e 50 dias.
+   - É feita uma recomendação de "Compra" se a média móvel de 20 dias estiver acima da média móvel de 50 dias.
+   - É feita uma recomendação de "Venda" se a média móvel de 20 dias estiver abaixo da média móvel de 50 dias.
+   - É feita uma recomendação de "Manutenção" se as médias móveis não mostrarem um padrão claro.
 
-4. **Graphical Visualization with Bokeh:**
-   - Uses the Bokeh library to create interactive charts of stock closing prices and their moving averages.
-   - The charts are embedded in the web page for easy viewing and understanding of the data.
+4. **Visualização Gráfica com Bokeh:**
+   - Utiliza a biblioteca Bokeh para criar gráficos interativos dos preços de fechamento das ações e suas médias móveis.
+   - Os gráficos são incorporados na página web para fácil visualização e compreensão dos dados.
 
-5. **User Authentication:**
-   - Implements a simple login system to restrict access to the application to authenticated users.
+5. **Autenticação de Utilizadores:**
+   - Implementa um sistema simples de login para restringir o acesso à aplicação a utilizadores autenticados.
 
-6. **Alerts:**
-   - Users can set price alerts for specific stocks. When a stock reaches the specified price condition (above or below), the user is notified.
+6. **Alertas:**
+   - Os utilizadores podem definir alertas de preço para ações específicas. Quando uma ação atinge a condição de preço especificada (acima ou abaixo), o utilizador é notificado.
 
-7. **Real-time Updates:**
-   - Utilizes Socket.IO to provide real-time updates for stock data and alerts.
+7. **Atualizações em Tempo Real:**
+   - Utiliza o Socket.IO para fornecer atualizações em tempo real para os dados das ações e alertas.
 
-## Prerequisites
+## Pré-requisitos
 
-To run this application locally, you need to have Python installed along with the libraries specified in the `requirements.txt` file. Additionally, a MongoDB server must be running on the local machine or on an accessible remote machine.
+Para executar esta aplicação localmente, é necessário ter o Python instalado juntamente com as bibliotecas especificadas no ficheiro `requirements.txt`. Além disso, um servidor MongoDB deve estar em execução na máquina local ou numa máquina remota acessível.
 
-## Installation and Execution
+## Instalação e Execução
 
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/Dark1nessss/Finance-Bot
-   cd Finance-Bot
+1. **Clonar o repositório:**
+   - Execute o comando `git clone https://github.com/Dark1nessss/Finance-Bot`
+   - Navegue para o diretório do projeto com o comando `cd Finance-Bot`
 
-2. **Install the dependencies:**
-pip install -r requirements.txt
+2. **Instalar as dependências:**
+   - Execute o comando `pip install -r requirements.txt`
 
-3. **Configure MongoDB:**
-- Ensure that the MongoDB server is running.
+3. **Configurar o MongoDB:**
+   - Certifique-se de que o servidor MongoDB está em execução.
 
-4. **Run the application:**
-python app.py
+4. **Executar a aplicação:**
+   - Execute o comando `python app.py`
 
-5. **Access the application:**
-- Open the browser and go to `http://localhost:5000`.
+5. **Aceder à aplicação:**
+   - Abra o navegador e vá para `http://localhost:5000`.
 
-## Usage
+## Utilização
 
-1. **Fetch stock data:**
-- On the homepage, enter the symbol of a stock (e.g., AAPL for Apple) and click on "Fetch Data".
-- This will fetch the latest stock data from Yahoo Finance and store it in MongoDB.
+1. **Buscar dados de ações:**
+   - Na página inicial, insira o símbolo de uma ação (por exemplo, AAPL para Apple) e clique em "Fetch Data".
+   - Isto buscará os dados mais recentes das ações do Yahoo Finance e armazená-los-á no MongoDB.
 
-2. **View data and recommendation:**
-- After fetching the data, you can click on "Show Data" to view the historical stock data, a chart with moving averages, and an investment recommendation.
+2. **Visualizar dados e recomendação:**
+   - Após buscar os dados, pode clicar em "Show Data" para visualizar os dados históricos das ações, um gráfico com médias móveis e uma recomendação de investimento.
 
-## Tools and Libraries
+## Ferramentas e Bibliotecas
 
-- **Flask:** Web framework that helps interact with HTML using Python.
-  - [Flask Documentation](https://flask.palletsprojects.com/en/2.0.x/)
+- **Flask:** Framework web que ajuda a interagir com HTML usando Python.
+  - [Documentação Flask](https://flask.palletsprojects.com/en/2.0.x/)
 
-- **Flask-SocketIO:** Adds support for real-time communication between the server and clients.
-  - [Flask-SocketIO Documentation](https://flask-socketio.readthedocs.io/en/latest/)
+- **Flask-SocketIO:** Adiciona suporte para comunicação em tempo real entre o servidor e os clientes.
+  - [Documentação Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/)
 
-- **Bokeh:** Helps with the creation of images/charts and much more.
-  - [Bokeh Documentation](https://docs.bokeh.org/en/latest/index.html)
+- **Bokeh:** Ajuda na criação de imagens/gráficos e muito mais.
+  - [Documentação Bokeh](https://docs.bokeh.org/en/latest/index.html)
 
-- **pymongo:** Framework that facilitates the connection between Python and MongoDB.
-  - [pymongo Documentation](https://pymongo.readthedocs.io/en/stable/)
+- **pymongo:** Framework que facilita a conexão entre Python e MongoDB.
+  - [Documentação pymongo](https://pymongo.readthedocs.io/en/stable/)
 
-- **yfinance:** Yahoo Finance API to assist with bots and more.
-  - [yfinance GitHub Repository](https://github.com/ranaroussi/yfinance)
+- **yfinance:** API do Yahoo Finance para auxiliar com bots e mais.
+  - [Repositório GitHub yfinance](https://github.com/ranaroussi/yfinance)
 
-- **pandas:** Data manipulation and analysis library.
-  - [pandas Documentation](https://pandas.pydata.org/docs/)
+- **pandas:** Biblioteca de manipulação e análise de dados.
+  - [Documentação pandas](https://pandas.pydata.org/docs/)
 
-- **datetime:** Library for date manipulation in Python.
-  - [datetime Documentation](https://docs.python.org/3/library/datetime.html)
+- **datetime:** Biblioteca para manipulação de datas em Python.
+  - [Documentação datetime](https://docs.python.org/3/library/datetime.html)
 
-- **SweetAlert:** Library for beautiful, responsive, customizable and accessible (WAI-ARIA) replacement for JavaScript's popup boxes.
-  - [SweetAlert Documentation](https://sweetalert.js.org/)
+- **SweetAlert:** Biblioteca para substituição de caixas de diálogo JavaScript por pop-ups bonitos, responsivos, personalizáveis e acessíveis (WAI-ARIA).
+  - [Documentação SweetAlert](https://sweetalert.js.org/)
 
-## Alerts System
+## Sistema de Alertas
 
-The application includes a feature where users can set alerts for specific stock prices. When the stock price crosses the set threshold, the user receives a notification.
+A aplicação inclui uma funcionalidade onde os utilizadores podem definir alertas para preços específicos de ações. Quando o preço da ação ultrapassa o limite definido, o utilizador recebe uma notificação.
 
-### Setting Alerts
+### Definir Alertas
 
-1. **Navigate to the Alerts Page:**
-   - Use the navigation bar to go to the "Alerts" page.
+1. **Navegar para a Página de Alertas:**
+   - Utilize a barra de navegação para ir para a página "Alerts".
 
-2. **Set a New Alert:**
-   - Enter the stock ticker symbol (e.g., AAPL for Apple).
-   - Select the condition ("above" or "below").
-   - Enter the target price for the alert.
-   - Click "Set Alert".
+2. **Definir um Novo Alerta:**
+   - Insira o símbolo da ação (por exemplo, AAPL para Apple).
+   - Selecione a condição ("above" ou "below").
+   - Insira o preço-alvo para o alerta.
+   - Clique em "Set Alert".
 
-### Viewing and Managing Alerts
+### Visualizar e Gerir Alertas
 
-- The alerts page displays all the alerts set by the user.
-- Users can remove an alert by clicking the "Remove" button next to the respective alert.
+- A página de alertas exibe todos os alertas definidos pelo utilizador.
+- Os utilizadores podem remover um alerta clicando no botão "Remove" ao lado do respetivo alerta.
 
-### Real-Time Notifications
+### Notificações em Tempo Real
 
-- The application uses WebSockets to provide real-time notifications when a stock reaches the alert threshold.
-- Notifications appear as pop-ups on the top-right corner of the screen.
+- A aplicação utiliza WebSockets para fornecer notificações em tempo real quando uma ação atinge o limite de alerta.
+- As notificações aparecem como pop-ups no canto superior direito da tela.
 
-## Simulating Alerts
+## Simular Alertas
 
-For testing purposes, the application includes a feature to simulate stock price changes and trigger alerts.
+Para fins de teste, a aplicação inclui uma funcionalidade para simular alterações no preço das ações e acionar alertas.
 
-1. **Simulate a Price Change:**
-   - Navigate to the Alerts page.
-   - Enter the stock ticker symbol for which you want to simulate a price change.
-   - Click the "Simulate Alert" button.
-   - The application will generate a random stock price and check against the set alerts.
-   - If the simulated price meets any alert conditions, a notification will be displayed.
+1. **Simular uma Alteração de Preço:**
+   - Navegue para a página de Alertas.
+   - Insira o símbolo da ação para a qual deseja simular uma alteração de preço.
+   - Clique no botão "Simulate Alert".
+   - A aplicação gerará um preço aleatório para a ação e verificará os alertas definidos.
+   - Se o preço simulado atender a qualquer condição de alerta, uma notificação será exibida.
 
-## Code Structure
+## Estrutura do Código
 
-- `app.py`: The main application file that initializes the Flask app, sets up the database, and starts the server.
-- `routes.py`: Defines the routes for the web application, including fetching stock data, displaying data, setting alerts, and handling user authentication.
-- `operations.py`: Contains the core operations for fetching stock data from Yahoo Finance, storing data in MongoDB, generating recommendations, and handling alerts.
-- `initdb.py`: Initializes the MongoDB database with the required collections and indexes.
-- `insert_data.py`: Inserts initial data into the MongoDB database, including example users and stock data.
-- `templates/`: Directory containing HTML templates for the web application.
-- `static/`: Directory containing static files such as CSS and JavaScript.
+- `app.py`: O ficheiro principal da aplicação que inicializa a aplicação Flask, configura a base de dados e inicia o servidor.
+- `routes.py`: Define as rotas para a aplicação web, incluindo buscar dados de ações, exibir dados, definir alertas e gerir a autenticação de utilizadores.
+- `operations.py`: Contém as operações principais para buscar dados de ações do Yahoo Finance, armazenar dados no MongoDB, gerar recomendações e gerir alertas.
+- `initdb.py`: Inicializa a base de dados MongoDB com as coleções e índices necessários.
+- `insert_data.py`: Insere dados iniciais na base de dados MongoDB, incluindo utilizadores e dados de ações de exemplo.
+- `templates/`: Diretório contendo os templates HTML para a aplicação web.
+- `static/`: Diretório contendo ficheiros estáticos como CSS e JavaScript.
 
-## Future Enhancements
+## Melhorias Futuras
 
-- **Enhanced Security:**
-  - Implement password hashing for user authentication.
-  - Add role-based access control to restrict certain features to admin users.
+- **Segurança Aprimorada:**
+  - Implementar hashing de senhas para a autenticação de utilizadores.
+  - Adicionar controlo de acesso baseado em funções para restringir certas funcionalidades a utilizadores administradores.
 
-- **Advanced Data Analysis:**
-  - Include additional technical indicators for more comprehensive investment analysis.
-  - Implement machine learning models for stock price prediction.
+- **Análise de Dados Avançada:**
+  - Incluir indicadores técnicos adicionais para uma análise de investimento mais abrangente.
+  - Implementar modelos de machine learning para previsão de preços de ações.
 
-- **User Interface Improvements:**
-  - Enhance the design and usability of the web application.
-  - Add more interactive and customizable charts.
+- **Melhorias na Interface de Utilizador:**
+  - Melhorar o design e a usabilidade da aplicação web.
+  - Adicionar gráficos mais interativos e personalizáveis.
 
-- **Notifications:**
-  - Implement email or SMS notifications for stock alerts.
-  - Provide options for users to customize notification preferences.
+- **Notificações:**
+  - Implementar notificações por email ou SMS para alertas de ações.
+  - Fornecer opções para os utilizadores personalizarem as preferências de notificações.
 
-## Contribution
+## Contribuição
 
-Contributions are welcome! If you have any ideas for improvements or new features, please feel free to fork the repository and submit a pull request.
+Contribuições são bem-vindas! Se tiver ideias para melhorias ou novas funcionalidades, sinta-se à vontade para fazer um fork do repositório e submeter um pull request.
