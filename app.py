@@ -10,7 +10,8 @@ socketio = SocketIO(app)
 if __name__ == '__main__':
     def initialize_database():
         try:
-            subprocess.run(['python', 'initdb.py', 'insert_data.py'], check=True)
+            # Run initdb.py
+            subprocess.run(['python', 'initdb.py'], check=True)
             print("Database initialized successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Database initialization failed: {e}")

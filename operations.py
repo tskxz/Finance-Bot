@@ -82,30 +82,31 @@ def get_all_logs():
 
 def get_logs_by_type(log_type):
     logs_collection = db.system_logs
-    return list(logs_collection.find({"action": log_type}).sort("timestamp", -1))
+    logs = list(logs_collection.find({"action": {"$regex": log_type, "$options": "i"}}).sort("timestamp", -1))
+    return logs
 
 # End Log Activity
 
 # Calcutions 😭😭
 
 def calculate_ratios_and_intrinsic_value(financials):
-    market_price = financials['market_price']
-    eps = financials['eps']
-    forward_pe = financials['forward_pe']
-    growth_rate = financials['growth_rate']
-    book_value_per_share = financials['book_value']
-    net_income = financials['net_income']
-    shareholders_equity = financials['shareholders_equity']
-    total_liabilities = financials['total_liabilities']
-    current_assets = financials['current_assets']
-    current_liabilities = financials['current_liabilities']
-    cash_flow = financials['cash_flow']
-    debt = financials['debt']
-    revenue = financials['revenue']
-    gross_profit = financials['gross_profit']
-    operating_margin = financials['operating_margin']
-    profit_margin = financials['profit_margin']
-    revenue_growth = financials['revenue_growth']
+    market_price = financials.get('market_price', 0)
+    eps = financials.get('eps', 0)
+    forward_pe = financials.get('forward_pe', 0)
+    growth_rate = financials.get('growth_rate', 0)
+    book_value_per_share = financials.get('book_value_per_share', 0)
+    net_income = financials.get('net_income', 0)
+    shareholders_equity = financials.get('shareholders_equity', 0)
+    total_liabilities = financials.get('total_liabilities', 0)
+    current_assets = financials.get('current_assets', 0)
+    current_liabilities = financials.get('current_liabilities', 0)
+    cash_flow = financials.get('cash_flow', 0)
+    debt = financials.get('debt', 0)
+    revenue = financials.get('revenue', 0)
+    gross_profit = financials.get('gross_profit', 0)
+    operating_margin = financials.get('operating_margin', 0)
+    profit_margin = financials.get('profit_margin', 0)
+    revenue_growth = financials.get('revenue_growth', 0)
     
     price_to_earnings_ratio = market_price / eps if eps else float('inf')  # P/E
     price_to_book_ratio = market_price / book_value_per_share if book_value_per_share else float('inf')  # P/B
@@ -291,20 +292,21 @@ def check_alerts_real_time(socketio):
         alerts = list(alerts_collection.find())
         
         for alert in alerts:
-            ticker = yf.Ticker(alert['ticker_symbol'])
-            current_price = ticker.history(period='1d')['Close'].iloc[-1]
-            condition = alert['condition']
-            price = alert['price']
-            
-            if (condition == "above" and current_price > price) or (condition == "below" and current_price < price):
-                socketio.emit('price_alert', {
-                    'ticker': alert['ticker_symbol'],
-                    'condition': condition,
-                    'price': price,
-                    'current_price': current_price
-                })
-                alerts_collection.delete_one({"_id": ObjectId(alert['_id'])})
-                log_activity(alert['username'], 'alert_triggered', f"Alert for {alert['ticker_symbol']} triggered at ${current_price} ({condition})")
+            if 'ticker_symbol' in alert:
+                ticker = yf.Ticker(alert['ticker_symbol'])
+                current_price = ticker.history(period='1d')['Close'].iloc[-1]
+                condition = alert['condition']
+                price = alert['price']
+                
+                if (condition == "above" and current_price > price) or (condition == "below" and current_price < price):
+                    socketio.emit('price_alert', {
+                        'ticker': alert['ticker_symbol'],
+                        'condition': condition,
+                        'price': price,
+                        'current_price': current_price
+                    })
+                    alerts_collection.delete_one({"_id": ObjectId(alert['_id'])})
+                    log_activity(alert['username'], 'alert_triggered', f"Alert for {alert['ticker_symbol']} triggered at ${current_price} ({condition})")
         
         time.sleep(300)  # Check every 5 minutes
 
