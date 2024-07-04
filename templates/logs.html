@@ -108,7 +108,7 @@
 <body>
     <div class="navbar">
         <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('alerts') }}">Alertas</a>
+        <a href="{{ url_for('alerts') }}">Alerts</a>
         {% if session.get('is_admin') %}
         <a href="{{ url_for('logs') }}">Logs</a>
         {% endif %}
