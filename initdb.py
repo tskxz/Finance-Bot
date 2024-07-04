@@ -13,6 +13,7 @@ def init_database():
                 "email": "string",
                 "created_at": "date",
                 "updated_at": "date",
+                "is_admin": "boolean",
                 "preferences": {
                     "theme": "string",
                     "default_chart_type": "string"

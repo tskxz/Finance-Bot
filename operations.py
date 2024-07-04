@@ -10,7 +10,10 @@ import random
 import time
 import threading
 from bson import ObjectId
+from datetime import datetime
+from flask import session
 
+# Connection
 try:
     client = MongoClient("mongodb://localhost:27017/")
     db = client.stock_data
@@ -18,7 +21,9 @@ try:
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
     raise
+# End Conection
 
+# Fetch Metrics
 def fetch_and_store_data(ticker_symbol, period='6mo'):
     ticker = yf.Ticker(ticker_symbol)
     hist = ticker.history(period=period)
@@ -54,13 +59,41 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
         {"$set": {"history": hist_dict, "name": company_name, "financials": financials}},
         upsert=True
     )
+    log_activity(session['username'], 'fetch_and_store_data', f"Fetched data for {ticker_symbol}")
+
+# End Fetch Metrics
+
+# Log Activity
+
+def log_activity(username, action, details=""):
+    logs_collection = db.system_logs
+    log_entry = {
+        "username": username,
+        "action": action,
+        "details": details,
+        "timestamp": datetime.utcnow()
+    }
+    logs_collection.insert_one(log_entry)
+
+def get_all_logs():
+    logs_collection = db.system_logs
+    logs = list(logs_collection.find().sort("timestamp", -1))
+    return logs
+
+def get_logs_by_type(log_type):
+    logs_collection = db.system_logs
+    return list(logs_collection.find({"action": log_type}).sort("timestamp", -1))
+
+# End Log Activity
+
+# Calcutions 😭😭
 
 def calculate_ratios_and_intrinsic_value(financials):
     market_price = financials['market_price']
     eps = financials['eps']
     forward_pe = financials['forward_pe']
     growth_rate = financials['growth_rate']
-    book_value_per_share = financials['book_value_per_share']
+    book_value_per_share = financials['book_value']
     net_income = financials['net_income']
     shareholders_equity = financials['shareholders_equity']
     total_liabilities = financials['total_liabilities']
@@ -93,6 +126,9 @@ def calculate_ratios_and_intrinsic_value(financials):
             intrinsic_value, price_to_earnings_to_growth_ratio, debt_to_equity, profit_margin_to_revenue, 
             intrinsic_value_lower, intrinsic_value_upper, revenue_growth)
 
+#  End Calculations
+
+# Analisys
 def get_recommendation(data, financials):
     df = pd.DataFrame(data)
     df['MA20'] = df['Close'].rolling(window=20).mean()
@@ -173,7 +209,9 @@ def get_recommendation(data, financials):
         )
     
     return recommendation, explanation
+# End of Analisys & Recommendation
 
+# Bokeh aint working 😭😭
 def create_detailed_plot(data):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
@@ -200,10 +238,18 @@ def create_detailed_plot(data):
     
     return script, div, cdn_js, cdn_css
 
+# End Bokeh
+
+# Validation
 def validate_user(username, password):
     user = db.users.find_one({"username": username, "password": password})
+    if user:
+        log_activity(username, 'login', "User logged in")
     return user
 
+# End Validation
+
+# Alerts
 def add_alert(username, ticker_symbol, condition, price):
     alerts_collection = db.alerts
     alert = {
@@ -217,6 +263,7 @@ def add_alert(username, ticker_symbol, condition, price):
         {"$set": alert},
         upsert=True
     )
+    log_activity(username, 'add_alert', f"Added alert for {ticker_symbol} at ${price} {condition}")
 
 def get_user_alerts(username):
     try:
@@ -236,6 +283,7 @@ def get_user_alerts(username):
 def remove_alert(username, ticker_symbol):
     alerts_collection = db.alerts
     alerts_collection.delete_one({"username": username, "ticker_symbol": ticker_symbol})
+    log_activity(username, 'remove_alert', f"Removed alert for {ticker_symbol}")
 
 def check_alerts_real_time(socketio):
     while True:
@@ -256,6 +304,7 @@ def check_alerts_real_time(socketio):
                     'current_price': current_price
                 })
                 alerts_collection.delete_one({"_id": ObjectId(alert['_id'])})
+                log_activity(alert['username'], 'alert_triggered', f"Alert for {alert['ticker_symbol']} triggered at ${current_price} ({condition})")
         
         time.sleep(300)  # Check every 5 minutes
 
@@ -274,11 +323,14 @@ def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
                 'current_price': simulated_price
             })
             alerts_collection.delete_one({"_id": ObjectId(alert['_id'])})
+            log_activity(alert['username'], 'alert_triggered', f"Simulated alert for {ticker_symbol} triggered at ${simulated_price} ({condition})")
 
 def simulate_data_changes(socketio, ticker_symbol):
     simulated_price = random.uniform(75, 76)
     check_alerts_simulated(socketio, ticker_symbol, simulated_price)
     return simulated_price
+
+# End Alert and Simulations
 
 # Start the real-time check in a separate thread
 threading.Thread(target=check_alerts_real_time, args=(socketio,), daemon=True).start()

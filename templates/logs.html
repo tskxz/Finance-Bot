@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs de Atividades</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: #333;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px 20px;
+            text-align: center;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .tab:hover, .tab.active {
+            background-color: #77b300;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .navbar a:hover {
+            background-color: #77b300;
+        }
+
+        .navbar .logo {
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .navbar .logout-btn {
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('alerts') }}">Alertas</a>
+        {% if session.get('is_admin') %}
+        <a href="{{ url_for('logs') }}">Logs</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="container">
+        <h1>Logs de Atividades</h1>
+        <div class="tabs">
+            <div class="tab active" data-tab="alert-logs">Alert Logs</div>
+            <div class="tab" data-tab="preference-logs">Preference Logs</div>
+            <div class="tab" data-tab="other-logs">Other Logs</div>
+        </div>
+        <div class="tab-content active" id="alert-logs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>Date & Hour</th>
+                    </tr>
+                </thead>
+                <tbody id="alert-logs-body">
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="preference-logs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>Date & Hour</th>
+                    </tr>
+                </thead>
+                <tbody id="preference-logs-body">
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="other-logs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>Date & Hour</th>
+                    </tr>
+                </thead>
+                <tbody id="other-logs-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        function fetchLogs(logType) {
+            fetch(`/get_logs/${logType}`)
+                .then(response => response.json())
+                .then(data => {
+                    const logsBody = document.getElementById(`${logType}-body`);
+                    logsBody.innerHTML = "";
+                    data.logs.forEach(log => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${log.username}</td>
+                            <td>${log.action}</td>
+                            <td>${log.details}</td>
+                            <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        `;
+                        logsBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching logs:', error));
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+
+                fetchLogs(this.dataset.tab.replace('-logs', ''));
+            });
+        });
+
+        fetchLogs('alert');
+    });
+</script>
+</body>
+</html>

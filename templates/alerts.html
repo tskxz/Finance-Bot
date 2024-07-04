@@ -197,6 +197,9 @@ footer {
     <div class="navbar">
         <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('alerts') }}">Alerts</a>
+        {% if session.get('is_admin') %}
+        <a href="{{ url_for('logs') }}">Logs</a>
+        {% endif %}
         <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
     </div>
 

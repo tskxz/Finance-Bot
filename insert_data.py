@@ -11,6 +11,7 @@ def insert_initial_data():
             "email": "admin@example.com",
             "created_at": None,
             "updated_at": None,
+            "is_admin": True,
             "preferences": {
                 "theme": "light",
                 "default_chart_type": "line"
@@ -22,6 +23,7 @@ def insert_initial_data():
             "email": "user@example.com",
             "created_at": None,
             "updated_at": None,
+            "is_admin": False,
             "preferences": {
                 "theme": "dark",
                 "default_chart_type": "bar"
