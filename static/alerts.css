@@ -46,6 +46,61 @@ header a:hover {
     font-weight: bold;
 }
 
+.navbar {
+    background-color: #333;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: #fff;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.navbar a:hover {
+    background-color: #77b300;
+}
+
+.navbar .logo {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    font-size: 20px;
+}
+
+.navbar .logout-btn {
+    float: right;
+}
+
+#showcase {
+    max-height: 500px;
+    background-color: #77b300;
+    text-align: center;
+    color: #fff;
+}
+
+#showcase h1 {
+    margin-top: 100px;
+    font-size: 55px;
+    margin-bottom: 10px;
+}
+
+#showcase p {
+    font-size: 20px;
+}
+
+#main {
+    padding: 20px;
+    background: #fff;
+}
+
 form {
     margin: 20px 0;
 }
@@ -69,42 +124,59 @@ form button:hover {
     background: #77b300;
 }
 
-h1, h2 {
-    color: #333;
-}
-
-.alerts-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.alerts-table, .alerts-table th, .alerts-table td {
+.table-wrapper {
+    max-height: 200px;
+    overflow-y: auto;
     border: 1px solid #ddd;
 }
 
-.alerts-table th, .alerts-table td {
-    padding: 10px;
-    text-align: left;
+table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.alerts-table th {
+th, td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
     background-color: #f4f4f4;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
-#alerts-table {
-    max-height: 400px;
-    overflow-y: auto;
+footer {
+    padding: 20px;
+    margin-top: 20px;
+    color: #fff;
+    background-color: #333;
+    text-align: center;
 }
 
-.alert-message {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #ffeb3b;
-    padding: 15px;
-    border: 1px solid #fbc02d;
-    border-radius: 5px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+.alert {
+    padding: 20px;
+    background-color: #f44336;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.alert.success {background-color: #4CAF50;}
+.alert.info {background-color: #2196F3;}
+.alert.warning {background-color: #ff9800;}
+
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.closebtn:hover {
+    color: black;
 }

@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -15,7 +14,7 @@ body {
 }
 
 .login-container {
-    width: 250px;
+    width: 250px; 
     padding: 20px;
     background-color: #fff;
     border: 1px solid #ccc;

@@ -13,6 +13,7 @@ def init_routes(app, socketio):
             return redirect(url_for('login'))
         
         return render_template('index.html')
+
 # End Init
 
 # Login system
@@ -152,7 +153,7 @@ def init_routes(app, socketio):
 
     @app.before_request
     def before_request():
-        allowed_routes = ['login']
+        allowed_routes = ['login', 'get_logs']
         if 'username' not in session and request.endpoint not in allowed_routes:
             return redirect(url_for('login'))
 

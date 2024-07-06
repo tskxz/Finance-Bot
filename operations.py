@@ -83,7 +83,10 @@ def get_all_logs():
 def get_logs_by_type(log_type):
     logs_collection = db.system_logs
     logs = list(logs_collection.find({"action": {"$regex": log_type, "$options": "i"}}).sort("timestamp", -1))
+    for log in logs:
+        log['_id'] = str(log['_id'])
     return logs
+
 
 # End Log Activity
 
@@ -299,7 +302,9 @@ def check_alerts_real_time(socketio):
                 price = alert['price']
                 
                 if (condition == "above" and current_price > price) or (condition == "below" and current_price < price):
+                    message = f"Alert: {alert['ticker_symbol']} has {condition} {price}. Current price is {current_price}."
                     socketio.emit('price_alert', {
+                        'message': message,
                         'ticker': alert['ticker_symbol'],
                         'condition': condition,
                         'price': price,
@@ -318,7 +323,9 @@ def check_alerts_simulated(socketio, ticker_symbol, simulated_price):
         condition = alert['condition']
         price = alert['price']
         if (condition == "above" and simulated_price > price) or (condition == "below" and simulated_price < price):
+            message = f"Simulated Alert: {ticker_symbol} has {condition} {price}. Simulated price is {simulated_price}."
             socketio.emit('price_alert', {
+                'message': message,
                 'ticker': ticker_symbol,
                 'condition': condition,
                 'price': price,
