@@ -75,10 +75,6 @@ header a:hover {
     font-size: 20px;
 }
 
-.navbar .logout-btn {
-    float: right;
-}
-
 #showcase {
     max-height: 500px;
     background-color: #77b300;

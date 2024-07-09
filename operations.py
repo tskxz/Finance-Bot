@@ -244,6 +244,31 @@ def create_detailed_plot(data):
 
 # End Bokeh
 
+# User Preferences
+
+def get_user_preferences(username):
+    preferences_collection = db.user_preferences
+    preferences = preferences_collection.find_one({"user_id": username})
+    if preferences:
+        preferences['_id'] = str(preferences['_id'])
+    return preferences
+
+def update_user_preferences(username, key, value):
+    preferences_collection = db.user_preferences
+    preferences = preferences_collection.find_one({"user_id": username})
+    if not preferences:
+        preferences = {"user_id": username, "theme": "light", "language": "en"}
+    
+    preferences[key] = value
+    preferences_collection.update_one(
+        {"user_id": username},
+        {"$set": preferences},
+        upsert=True
+    )
+    log_activity(username, 'update_preferences', f"Updated {key} to {value}")
+
+# End User Preferences
+
 # Validation
 def validate_user(username, password):
     user = db.users.find_one({"username": username, "password": password})

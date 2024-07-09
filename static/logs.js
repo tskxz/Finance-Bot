@@ -36,4 +36,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Fetch initial logs for the active tab
     fetchLogs('alert');
+
+    // Handle theme changes
+    document.getElementById('light-theme').addEventListener('click', function () {
+        fetch('/change_theme/light', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.body.classList.remove('dark');
+                    document.body.classList.add('light');
+                }
+            });
+    });
+
+    document.getElementById('dark-theme').addEventListener('click', function () {
+        fetch('/change_theme/dark', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.body.classList.remove('light');
+                    document.body.classList.add('dark');
+                }
+            });
+    });
+
+    // Handle language changes
+    document.getElementById('en-lang').addEventListener('click', function () {
+        fetch('/change_language/en', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                }
+            });
+    });
+
+    document.getElementById('pt-lang').addEventListener('click', function () {
+        fetch('/change_language/pt', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                }
+            });
+    });
 });

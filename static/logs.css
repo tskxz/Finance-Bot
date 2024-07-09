@@ -1,21 +1,94 @@
+/* Base Styles */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
 }
 
-.container {
-    width: 80%;
-    margin: auto;
+/* Light Theme */
+body.light {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+body.light .container {
+    background-color: #f4f4f4;
+}
+
+body.light th {
+    background-color: #f4f4f4;
+}
+
+body.light tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+body.light tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Dark Theme */
+body.dark {
+    background-color: #333;
+    color: #f4f4f4;
+}
+
+body.dark .container {
+    background-color: #333;
+}
+
+body.dark th {
+    background-color: #333;
+    color: #f4f4f4;
+}
+
+body.dark tr:nth-child(even) {
+    background-color: #444;
+}
+
+body.dark tr:hover {
+    background-color: #555;
+}
+
+body.dark .tab{
+    flex: 1;
+    padding: 14px 20px;
+    text-align: center;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+body.dark .tabs {
+    display: flex;
+    justify-content: space-around;
+    background-color: #fff;
+    margin-bottom: 20px;
+    border-radius: 10px;
     overflow: hidden;
 }
 
-h1 {
-    text-align: center;
-    margin: 20px 0;
+/* Navbar */
+.navbar {
+    background-color: #333;
+    overflow: hidden;
 }
 
+.navbar a {
+    float: left;
+    display: block;
+    color: #fff;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.navbar a:hover {
+    background-color: #77b300;
+}
+
+/* Tabs */
 .tabs {
     display: flex;
     justify-content: space-around;
@@ -46,6 +119,7 @@ h1 {
     display: block;
 }
 
+/* Table */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -61,44 +135,51 @@ th, td {
     text-align: left;
 }
 
-th {
-    background-color: #f4f4f4;
-}
-
-tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-tr:hover {
-    background-color: #f1f1f1;
-}
-
-.navbar {
+/* Dropdown Button */
+.dropbtn {
     background-color: #333;
+    color: white;
+    padding: 14px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Dropdown container */
+.dropdown {
+    float: left;
     overflow: hidden;
 }
 
-.navbar a {
-    float: left;
-    display: block;
-    color: #fff;
-    text-align: center;
-    padding: 14px 20px;
-    text-decoration: none;
-    font-size: 16px;
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
 }
 
-.navbar a:hover {
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: white;
+    padding: 12px 24px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
     background-color: #77b300;
 }
 
-.navbar .logo {
-    display: inline-block;
-    padding: 0;
-    margin: 0;
-    font-size: 20px;
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
 }
 
-.navbar .logout-btn {
-    float: right;
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: #77b300;
 }

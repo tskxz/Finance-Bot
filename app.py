@@ -3,7 +3,7 @@ from flask_socketio import SocketIO
 from routes import init_routes
 import subprocess
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'your_secret_key'
 socketio = SocketIO(app)
 

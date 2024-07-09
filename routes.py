@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
-from flask_socketio import emit, socketio
-from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs
+from flask_socketio import emit
+from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs, get_user_preferences, update_user_preferences
 from operations import db
 import threading
 
@@ -132,8 +132,11 @@ def init_routes(app, socketio):
         if 'username' not in session:
             return redirect(url_for('login'))
 
-        logs = get_all_logs()
-        return render_template('logs.html', logs=logs)
+        preferences = get_user_preferences(session['username'])
+        theme = preferences['theme'] if preferences else 'light'
+        language = preferences['language'] if preferences else 'en'
+
+        return render_template('logs.html', logs=get_all_logs(), theme=theme, language=language)
 
     @app.route('/get_logs/<log_type>')
     def get_logs(log_type):
@@ -147,13 +150,27 @@ def init_routes(app, socketio):
             print(f"Erro ao buscar logs: {e}")
             return jsonify({'error': str(e)}), 500
 
+    @app.route('/change_theme/<theme>', methods=['POST'])
+    def change_theme(theme):
+        if 'username' in session:
+            update_user_preferences(session['username'], 'theme', theme)
+            return jsonify({'status': 'success'})
+        return jsonify({'status': 'error'}), 401
+
+    @app.route('/change_language/<lang>', methods=['POST'])
+    def change_language(lang):
+        if 'username' in session:
+            update_user_preferences(session['username'], 'language', lang)
+            return jsonify({'status': 'success'})
+        return jsonify({'status': 'error'}), 401
+
 # End Log System
 
 # Request username for connection
 
     @app.before_request
     def before_request():
-        allowed_routes = ['login', 'get_logs']
+        allowed_routes = ['login', 'get_logs', 'change_theme', 'change_language']
         if 'username' not in session and request.endpoint not in allowed_routes:
             return redirect(url_for('login'))
 
