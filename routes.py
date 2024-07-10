@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
 from flask_socketio import emit
-from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs, get_user_preferences, update_user_preferences
+from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs, get_user_preferences, update_user_preferences, load_language_file
 from operations import db
 import threading
 
@@ -135,8 +135,10 @@ def init_routes(app, socketio):
         preferences = get_user_preferences(session['username'])
         theme = preferences['theme'] if preferences else 'light'
         language = preferences['language'] if preferences else 'en'
+        language_strings = load_language_file(language)
 
-        return render_template('logs.html', logs=get_all_logs(), theme=theme, language=language)
+        return render_template('logs.html', logs=get_all_logs(), theme=theme, language=language, lang_strings=language_strings)
+
 
     @app.route('/get_logs/<log_type>')
     def get_logs(log_type):

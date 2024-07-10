@@ -1,88 +1,88 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="{{ language }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logs</title>
+    <title>{{ lang_strings.logs }}</title>
     <link rel="stylesheet" href="/static/logs.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-    <body class="{{ theme }}">
-        <div class="navbar">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('alerts') }}">Alerts</a>
-            {% if session.get('is_admin') %}
-            <a href="{{ url_for('logs') }}">Logs</a>
-            {% endif %}
-            <div class="dropdown">
-                <button class="dropbtn">Theme</button>
-                <div class="dropdown-content">
-                    <a href="#" id="light-theme">Light</a>
-                    <a href="#" id="dark-theme">Dark</a>
-                </div>
+<body class="{{ theme }}">
+    <div class="navbar">
+        <a href="{{ url_for('index') }}">{{ lang_strings.home }}</a>
+        <a href="{{ url_for('alerts') }}">{{ lang_strings.alerts }}</a>
+        {% if session.get('is_admin') %}
+        <a href="{{ url_for('logs') }}">{{ lang_strings.logs }}</a>
+        {% endif %}
+        <div class="dropdown">
+            <button class="dropbtn">{{ lang_strings.theme }}</button>
+            <div class="dropdown-content">
+                <a href="#" id="light-theme">Light</a>
+                <a href="#" id="dark-theme">Dark</a>
             </div>
-            <div class="dropdown">
-                <button class="dropbtn">Language</button>
-                <div class="dropdown-content">
-                    <a href="#" id="en-lang">English</a>
-                    <a href="#" id="pt-lang">Portuguese</a>
-                </div>
-            </div>
-            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
         </div>
+        <div class="dropdown">
+            <button class="dropbtn">{{ lang_strings.language }}</button>
+            <div class="dropdown-content">
+                <a href="#" id="en-lang">English</a>
+                <a href="#" id="pt-lang">Portuguese</a>
+            </div>
+        </div>
+        <a href="{{ url_for('logout') }}" class="logout-btn">{{ lang_strings.logout }}</a>
+    </div>
 
-        <div class="container">
-            <h1>Logs de Atividades</h1>
-            <div class="tabs">
-                <div class="tab active" data-tab="alert">Alert Logs</div>
-                <div class="tab" data-tab="preference">Preference Logs</div>
-                <div class="tab" data-tab="other">Other Logs</div>
-            </div>
-            <div class="tab-content active" id="alert-logs">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Details</th>
-                            <th>Date & Hour</th>
-                        </tr>
-                    </thead>
-                    <tbody id="alert-logs-body">
-                    </tbody>
-                </table>
-            </div>
-            <div class="tab-content" id="preference-logs">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Details</th>
-                            <th>Date & Hour</th>
-                        </tr>
-                    </thead>
-                    <tbody id="preference-logs-body">
-                    </tbody>
-                </table>
-            </div>
-            <div class="tab-content" id="other-logs">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Details</th>
-                            <th>Date & Hour</th>
-                        </tr>
-                    </thead>
-                    <tbody id="other-logs-body">
-                    </tbody>
-                </table>
-            </div>
+    <div class="container">
+        <h1>{{ lang_strings.logs_activities }}</h1>
+        <div class="tabs">
+            <div class="tab active" data-tab="alert">{{ lang_strings.alert_logs }}</div>
+            <div class="tab" data-tab="preference">{{ lang_strings.preference_logs }}</div>
+            <div class="tab" data-tab="other">{{ lang_strings.other_logs }}</div>
         </div>
+        <div class="tab-content active" id="alert-logs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{ lang_strings.user }}</th>
+                        <th>{{ lang_strings.action }}</th>
+                        <th>{{ lang_strings.details }}</th>
+                        <th>{{ lang_strings.date_hour }}</th>
+                    </tr>
+                </thead>
+                <tbody id="alert-logs-body">
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="preference-logs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{ lang_strings.user }}</th>
+                        <th>{{ lang_strings.action }}</th>
+                        <th>{{ lang_strings.details }}</th>
+                        <th>{{ lang_strings.date_hour }}</th>
+                    </tr>
+                </thead>
+                <tbody id="preference-logs-body">
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="other-logs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{ lang_strings.user }}</th>
+                        <th>{{ lang_strings.action }}</th>
+                        <th>{{ lang_strings.details }}</th>
+                        <th>{{ lang_strings.date_hour }}</th>
+                    </tr>
+                </thead>
+                <tbody id="other-logs-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script src="/static/logs.js"></script>
-    </body>
+</body>
 </html>

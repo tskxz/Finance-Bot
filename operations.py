@@ -12,6 +12,7 @@ import threading
 from bson import ObjectId
 from datetime import datetime
 from flask import session
+import json
 
 # Connection
 try:
@@ -22,6 +23,12 @@ except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
     raise
 # End Conection
+
+# Load Language files
+def load_language_file(language):
+    with open(f'translations/translations_{language}.json', 'r') as lang_file:
+        return json.load(lang_file)
+# End loading language files
 
 # Fetch Metrics
 def fetch_and_store_data(ticker_symbol, period='6mo'):

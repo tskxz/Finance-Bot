@@ -1,0 +1,20 @@
+{
+    "login": "Entrar",
+    "username": "Nome de usuário",
+    "password": "Senha",
+    "login_button": "Entrar",
+    "home": "Início",
+    "alerts": "Alertas",
+    "logs": "Logs",
+    "logout": "Sair",
+    "language": "Idioma",
+    "theme": "Tema",
+    "alert_logs": "Logs de Alertas",
+    "preference_logs": "Logs de Preferências",
+    "other_logs": "Outros Logs",
+    "logs_activities": "Logs de Atividades",
+    "date_hour": "Data & Hora",
+    "details": "Detalhes",
+    "user": "Usuário",
+    "action": "Ação"
+}

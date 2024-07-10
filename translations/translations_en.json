@@ -1,0 +1,20 @@
+{
+    "login": "Login",
+    "username": "Username",
+    "password": "Password",
+    "login_button": "Login",
+    "home": "Home",
+    "alerts": "Alerts",
+    "logs": "Logs",
+    "logout": "Logout",
+    "language": "Language",
+    "theme": "Theme",
+    "alert_logs": "Alert Logs",
+    "preference_logs": "Preference Logs",
+    "other_logs": "Other Logs",
+    "logs_activities": "Logs of Activities",
+    "date_hour": "Date & Hour",
+    "details": "Details",
+    "user": "User",
+    "action": "Action"
+}
