@@ -89,8 +89,13 @@ form button:hover {
     background: #77b300;
 }
 
-#recommendation h2, #stock-data h2 {
+#sentiment h2, #recommendation h2, #stock-data h2 {
     color: #333;
+}
+
+#sentiment p, #recommendation p {
+    color: #666;
+    font-size: 16px;
 }
 
 table {

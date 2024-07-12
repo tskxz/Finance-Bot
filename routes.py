@@ -66,6 +66,7 @@ def init_routes(app, socketio):
             return redirect(url_for('login'))
         ticker_symbol = request.args.get('ticker')
         stock_data = db.stocks.find_one({"symbol": ticker_symbol})
+        sentiment_data = db.sentiment_analysis.find_one({"symbol": ticker_symbol})
         
         if stock_data:
             data = stock_data['history']
@@ -73,9 +74,10 @@ def init_routes(app, socketio):
             recommendation, explanation = get_recommendation(data, financials)
             plot_script, plot_div, cdn_css, cdn_js = create_detailed_plot(data)
             firm_name = stock_data.get('name', 'Unknown Firm') 
+            sentiment = sentiment_data['sentiment'] if sentiment_data else "Neutral"
             return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation,
             plot_script=plot_script, plot_div=plot_div, firm_name=firm_name, ticker=ticker_symbol,
-            cdn_css=cdn_css, cdn_js=cdn_js)
+            cdn_css=cdn_css, cdn_js=cdn_js, sentiment=sentiment)
         else:
             return f"Dados não encontrados para {ticker_symbol}!"
 
@@ -199,6 +201,6 @@ def init_routes(app, socketio):
         flash(f"Preço simulado para {ticker_symbol}: ${simulated_price:.2f}", 'info')
         return redirect(url_for('alerts'))
 
-# End Simuatlion Alert
+# End Simulation Alert
 
     threading.Thread(target=check_alerts_real_time, args=(socketio,), daemon=True).start()

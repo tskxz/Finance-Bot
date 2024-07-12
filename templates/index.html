@@ -16,12 +16,12 @@
             </div>
             <nav>
                 <ul>
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('alerts') }}">Alerts</a></li>
-                {% if session.get('is_admin') %}
-                <li><a href="{{ url_for('logs') }}">Logs</a></li>
-                {% endif %}
-                <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('alerts') }}">Alerts</a></li>
+                    {% if session.get('is_admin') %}
+                    <li><a href="{{ url_for('logs') }}">Logs</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
                 </ul>
             </nav>
         </div>
@@ -42,7 +42,7 @@
 
             <div id="recommendation">
                 {% if recommendation %}
-                    <h2>{{ firm_name }} ({{ ticker }}) - Recommendation: {{ recommendation }}</h2>
+                    <h2>{{ firm_name }} ({{ ticker }}) - Recommendation: {{ recommendation }} | Sentiment: {{ sentiment }}</h2>
                     <p>{{ explanation }}</p>
                 {% endif %}
             </div>

@@ -22,7 +22,7 @@ try:
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
     raise
-# End Conection
+# End Connection
 
 # Load Language files
 def load_language_file(language):
@@ -30,7 +30,7 @@ def load_language_file(language):
         return json.load(lang_file)
 # End loading language files
 
-# Fetch Metrics
+# Fetch Metrics and Sentiment Data
 def fetch_and_store_data(ticker_symbol, period='6mo'):
     ticker = yf.Ticker(ticker_symbol)
     hist = ticker.history(period=period)
@@ -66,9 +66,33 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
         {"$set": {"history": hist_dict, "name": company_name, "financials": financials}},
         upsert=True
     )
+
+    sentiment = fetch_sentiment_data(ticker_symbol)
+    store_sentiment_data(ticker_symbol, sentiment)
+
     log_activity(session['username'], 'fetch_and_store_data', f"Fetched data for {ticker_symbol}")
 
-# End Fetch Metrics
+# Fetch Sentiment Data
+def fetch_sentiment_data(ticker_symbol):
+    ticker = yf.Ticker(ticker_symbol)
+    sentiment = ticker.info.get('recommendationKey', 'Neutral')  # Example, replace with actual sentiment data if available
+    return sentiment
+
+# Store Sentiment Data
+def store_sentiment_data(ticker_symbol, sentiment):
+    sentiment_collection = db.sentiment_analysis
+    sentiment_data = {
+        "symbol": ticker_symbol,
+        "sentiment": sentiment,
+        "timestamp": datetime.utcnow()
+    }
+    sentiment_collection.update_one(
+        {"symbol": ticker_symbol},
+        {"$set": sentiment_data},
+        upsert=True
+    )
+
+# End Fetch Metrics and Sentiment
 
 # Log Activity
 
@@ -94,7 +118,6 @@ def get_logs_by_type(log_type):
         log['_id'] = str(log['_id'])
     return logs
 
-
 # End Log Activity
 
 # Calcutions 😭😭
@@ -104,7 +127,7 @@ def calculate_ratios_and_intrinsic_value(financials):
     eps = financials.get('eps', 0)
     forward_pe = financials.get('forward_pe', 0)
     growth_rate = financials.get('growth_rate', 0)
-    book_value_per_share = financials.get('book_value_per_share', 0)
+    book_value_per_share = financials.get('book_value', 0)
     net_income = financials.get('net_income', 0)
     shareholders_equity = financials.get('shareholders_equity', 0)
     total_liabilities = financials.get('total_liabilities', 0)
