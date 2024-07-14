@@ -62,18 +62,6 @@
                 {% endif %}
             </div>
 
-            <div id="plot-wrapper">
-                {% if plot_div and plot_script %}
-                    <div id="plot">
-                        {{ plot_div | safe }}
-                        {% if cdn_js %}
-                            <script src="{{ cdn_js }}"></script>
-                        {% endif %}
-                        {{ plot_script | safe }}
-                    </div>
-                {% endif %}
-            </div>
-
             {% if data %}
                 <div id="stock-data">
                     <h2>Stock Data:</h2>

@@ -59,6 +59,14 @@ def init_database():
             }
         },
         {
+            "name": "sentiment_analysis",
+            "schema": {
+                "symbol": "string",
+                "sentiment": "string",
+                "timestamp": "date"
+            }
+        },
+        {
             "name": "user_preferences",
             "schema": {
                 "user_id": "string",
@@ -68,23 +76,12 @@ def init_database():
             }
         },
         {
-            "name": "sessions",
-            "schema": {
-                "session_id": "string",
-                "user_id": "string",
-                "login_timestamp": "date",
-                "logout_timestamp": "date",
-                "ip_address": "string"
-            }
-        },
-        {
             "name": "system_logs",
             "schema": {
                 "timestamp": "date",
                 "message": "string",
                 "severity": "string",
-                "user_id": "string",
-                "session_id": "string"
+                "user_id": "string"
             }
         },
         {

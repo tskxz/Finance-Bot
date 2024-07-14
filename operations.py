@@ -1,10 +1,6 @@
 import yfinance as yf
 import pandas as pd
 from pymongo import MongoClient
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.models import HoverTool, ColumnDataSource
-from bokeh.resources import CDN
 from flask_socketio import emit, socketio
 import random
 import time
@@ -291,35 +287,6 @@ def get_recommendation(data, financials):
     
     return recommendation, explanation
 # End of Analisys & Recommendation
-
-# Bokeh aint working 😭😭
-def create_detailed_plot(data):
-    df = pd.DataFrame(data)
-    df['Date'] = pd.to_datetime(df['Date'])
-    
-    p = figure(x_axis_type="datetime", title="Stock Price Movement", width=800, height=400)
-    source = ColumnDataSource(df)
-    
-    p.line('Date', 'Close', color='navy', legend_label='Close Price', source=source)
-    p.line('Date', 'MA20', color='orange', legend_label='20-Day MA', source=source)
-    p.line('Date', 'MA50', color='green', legend_label='50-Day MA', source=source)
-    
-    tooltips = [("Date", "@Date{%F}"), ("Close", "@Close{0.2f}")]
-    
-    hover_tool = HoverTool(tooltips=tooltips, formatters={'@Date': 'datetime'})
-    p.add_tools(hover_tool)
-    
-    p.legend.location = "top_left"
-    p.xaxis.axis_label = "Date"
-    p.yaxis.axis_label = "Price (USD)"
-    
-    script, div = components(p)
-    cdn_js = CDN.js_files[0] if CDN.js_files else None
-    cdn_css = CDN.css_files[0] if CDN.css_files else None
-    
-    return script, div, cdn_js, cdn_css
-
-# End Bokeh
 
 # User Preferences
 
