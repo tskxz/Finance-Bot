@@ -49,16 +49,13 @@ def init_database():
             }
         },
         {
-            "name": "visualization_data",
+            "name": "news",
             "schema": {
                 "symbol": "string",
-                "data_type": "string",
-                "data": {
-                    "script": "string",
-                    "div": "string",
-                    "cdn_js": "string",
-                    "cdn_css": "string"
-                }
+                "title": "string",
+                "description": "string",
+                "url": "string",
+                "publishedAt": "date"
             }
         },
         {

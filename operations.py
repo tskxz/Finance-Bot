@@ -9,6 +9,7 @@ from flask_socketio import emit, socketio
 import random
 import time
 import threading
+import requests
 from bson import ObjectId
 from datetime import datetime
 from flask import session
@@ -23,6 +24,52 @@ except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
     raise
 # End Connection
+
+# Add your API key here
+API_KEY = 'wWequqmAWjushPoSlxtLiXY1hrWcx6EsmXyf0Q0f'
+# End API
+
+# Fetch News
+def fetch_and_store_news(ticker_symbol):
+    url = f'https://api.marketaux.com/v1/news/all?symbols={ticker_symbol}&filter_entities=true&language=en&api_token={API_KEY}'
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        news_data = response.json()
+        if 'data' in news_data:
+            articles = news_data['data']
+            for article in articles:
+                published_at = article.get('published_at')
+                existing_article = db.news.find_one({"symbol": ticker_symbol, "url": article.get('url')})
+
+                if existing_article:
+                    existing_published_at = existing_article.get('publishedAt')
+                    if existing_published_at == published_at:
+                        continue  # Skip updating if the article was not updated
+
+                news_entry = {
+                    'symbol': ticker_symbol,
+                    'title': article.get('title'),
+                    'description': article.get('description'),
+                    'url': article.get('url'),
+                    'publishedAt': published_at
+                }
+                db.news.update_one(
+                    {"symbol": ticker_symbol, "url": article.get('url')},
+                    {"$set": news_entry},
+                    upsert=True
+                )
+            log_activity(session['username'], 'fetch_and_store_news', f"Fetched news for {ticker_symbol}")
+    else:
+        print(f"Error fetching news for {ticker_symbol}: {response.status_code}")
+
+def get_news_by_symbol(ticker_symbol):
+    news_collection = db.news
+    news_articles = list(news_collection.find({"symbol": ticker_symbol}).sort("publishedAt", -1))
+    for article in news_articles:
+        article['_id'] = str(article['_id'])
+    return news_articles
+# End Fetch News
 
 # Load Language files
 def load_language_file(language):

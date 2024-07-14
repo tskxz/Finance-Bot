@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
 from flask_socketio import emit
-from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs, get_user_preferences, update_user_preferences, load_language_file
+from operations import fetch_and_store_data, get_recommendation, create_detailed_plot, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs, get_user_preferences, update_user_preferences, load_language_file, fetch_and_store_news, get_news_by_symbol
 from operations import db
 import threading
 
@@ -53,6 +53,7 @@ def init_routes(app, socketio):
             return redirect(url_for('login'))
         ticker_symbol = request.form['ticker']
         fetch_and_store_data(ticker_symbol)
+        fetch_and_store_news(ticker_symbol)
         socketio.emit('update_stock', {'ticker': ticker_symbol})
         return redirect('/show?ticker=' + ticker_symbol)
 
@@ -66,7 +67,6 @@ def init_routes(app, socketio):
             return redirect(url_for('login'))
         ticker_symbol = request.args.get('ticker')
         stock_data = db.stocks.find_one({"symbol": ticker_symbol})
-        sentiment_data = db.sentiment_analysis.find_one({"symbol": ticker_symbol})
         
         if stock_data:
             data = stock_data['history']
@@ -74,10 +74,14 @@ def init_routes(app, socketio):
             recommendation, explanation = get_recommendation(data, financials)
             plot_script, plot_div, cdn_css, cdn_js = create_detailed_plot(data)
             firm_name = stock_data.get('name', 'Unknown Firm') 
-            sentiment = sentiment_data['sentiment'] if sentiment_data else "Neutral"
+            
+            # Fetch and store news
+            fetch_and_store_news(ticker_symbol)
+            news_articles = get_news_by_symbol(ticker_symbol)
+            
             return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation,
-            plot_script=plot_script, plot_div=plot_div, firm_name=firm_name, ticker=ticker_symbol,
-            cdn_css=cdn_css, cdn_js=cdn_js, sentiment=sentiment)
+                                plot_script=plot_script, plot_div=plot_div, firm_name=firm_name, ticker=ticker_symbol,
+                                cdn_css=cdn_css, cdn_js=cdn_js, news_articles=news_articles)
         else:
             return f"Dados não encontrados para {ticker_symbol}!"
 
