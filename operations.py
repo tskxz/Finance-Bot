@@ -1,17 +1,21 @@
 import yfinance as yf
 import pandas as pd
 from pymongo import MongoClient
-from flask_socketio import emit, socketio
-import random
-import time
+from datetime import datetime
+from flask_socketio import SocketIO
 import threading
+import time
+import random
 import requests
 from bson import ObjectId
-from datetime import datetime
 from flask import session
+from industry_thresholds import get_thresholds
 import json
 
-# Connection
+# Initialize SocketIO
+socketio = SocketIO()
+
+# MongoDB Connection
 try:
     client = MongoClient("mongodb://localhost:27017/")
     db = client.stock_data
@@ -19,13 +23,11 @@ try:
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
     raise
-# End Connection
 
 # Add your API key here
 API_KEY = 'wWequqmAWjushPoSlxtLiXY1hrWcx6EsmXyf0Q0f'
-# End API
 
-# Fetch News
+# Fetch News and Store
 def fetch_and_store_news(ticker_symbol):
     url = f'https://api.marketaux.com/v1/news/all?symbols={ticker_symbol}&filter_entities=true&language=en&api_token={API_KEY}'
     response = requests.get(url)
@@ -59,21 +61,40 @@ def fetch_and_store_news(ticker_symbol):
     else:
         print(f"Error fetching news for {ticker_symbol}: {response.status_code}")
 
+# Get News by Symbol
 def get_news_by_symbol(ticker_symbol):
     news_collection = db.news
     news_articles = list(news_collection.find({"symbol": ticker_symbol}).sort("publishedAt", -1))
     for article in news_articles:
         article['_id'] = str(article['_id'])
     return news_articles
-# End Fetch News
 
 # Load Language files
 def load_language_file(language):
     with open(f'translations/translations_{language}.json', 'r') as lang_file:
         return json.load(lang_file)
-# End loading language files
 
-# Fetch Metrics and Sentiment Data
+# Fetch Sentiment Data
+def fetch_sentiment_data(ticker_symbol):
+    ticker = yf.Ticker(ticker_symbol)
+    sentiment = ticker.info.get('recommendationKey', 'Neutral')  # Example, replace with actual sentiment data if available
+    return sentiment
+
+# Store Sentiment Data
+def store_sentiment_data(ticker_symbol, sentiment):
+    sentiment_collection = db.sentiment_analysis
+    sentiment_data = {
+        "symbol": ticker_symbol,
+        "sentiment": sentiment,
+        "timestamp": datetime.utcnow()
+    }
+    sentiment_collection.update_one(
+        {"symbol": ticker_symbol},
+        {"$set": sentiment_data},
+        upsert=True
+    )
+
+# Fetch Metrics and Store Data
 def fetch_and_store_data(ticker_symbol, period='6mo'):
     ticker = yf.Ticker(ticker_symbol)
     hist = ticker.history(period=period)
@@ -100,13 +121,14 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
         'gross_profit': ticker.financials.loc['Gross Profit', :].iloc[0] if 'Gross Profit' in ticker.financials.index else 0,
         'operating_margin': ticker.info.get('operatingMargins', 0),
         'profit_margin': ticker.info.get('profitMargins', 0),
-        'revenue_growth': ticker.info.get('revenueGrowth', 0)
+        'revenue_growth': ticker.info.get('revenueGrowth', 0),
+        'symbol': ticker_symbol
     }
     
     stocks_collection = db.stocks
     stocks_collection.update_one(
         {"symbol": ticker_symbol},
-        {"$set": {"history": hist_dict, "name": company_name, "financials": financials}},
+        {"$set": {"history": hist_dict, "name": company_name, "financials": financials, "sector": ticker.info.get('sector', 'Unknown')}},
         upsert=True
     )
 
@@ -115,30 +137,203 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
 
     log_activity(session['username'], 'fetch_and_store_data', f"Fetched data for {ticker_symbol}")
 
-# Fetch Sentiment Data
-def fetch_sentiment_data(ticker_symbol):
-    ticker = yf.Ticker(ticker_symbol)
-    sentiment = ticker.info.get('recommendationKey', 'Neutral')  # Example, replace with actual sentiment data if available
-    return sentiment
+# Calculations for Financial Ratios and Intrinsic Value
+def calculate_ratios_and_intrinsic_value(financials):
+    market_price = financials.get('market_price', 0)
+    eps = financials.get('eps', 0)
+    forward_pe = financials.get('forward_pe', 0)
+    growth_rate = financials.get('growth_rate', 0)
+    book_value_per_share = financials.get('book_value', 0)
+    net_income = financials.get('net_income', 0)
+    shareholders_equity = financials.get('shareholders_equity', 0)
+    total_liabilities = financials.get('total_liabilities', 0)
+    current_assets = financials.get('current_assets', 0)
+    current_liabilities = financials.get('current_liabilities', 0)
+    cash_flow = financials.get('cash_flow', 0)
+    debt = financials.get('debt', 0)
+    revenue = financials.get('revenue', 0)
+    gross_profit = financials.get('gross_profit', 0)
+    operating_margin = financials.get('operating_margin', 0)
+    profit_margin = financials.get('profit_margin', 0)
+    revenue_growth = financials.get('revenue_growth', 0)
+    
+    # Calculate Price to Earnings Ratio (P/E)
+    price_to_earnings_ratio = market_price / eps if eps else float('inf')
+    
+    # Calculate Price to Book Ratio (P/B)
+    price_to_book_ratio = market_price / book_value_per_share if book_value_per_share else float('inf')
+    
+    # Calculate Debt to Equity Ratio (D/E)
+    debt_to_equity_ratio = total_liabilities / shareholders_equity if shareholders_equity else float('inf')
+    
+    # Calculate Return on Equity (ROE)
+    return_on_equity = net_income / shareholders_equity if shareholders_equity else 0
+    
+    # Calculate Current Ratio
+    current_ratio = current_assets / current_liabilities if current_liabilities else 0
+    
+    # Calculate Price to Earnings to Growth Ratio (PEG)
+    price_to_earnings_to_growth_ratio = forward_pe / (growth_rate * 100) if growth_rate else float('inf')
+    
+    # Calculate Debt to Equity
+    debt_to_equity = debt / shareholders_equity if shareholders_equity else float('inf')
+    
+    # Calculate Profit Margin to Revenue
+    profit_margin_to_revenue = profit_margin * 100 if profit_margin else 0
+    
+    # Calculate Intrinsic Value
+    intrinsic_value = (eps * (1 + 0.05) / 0.10) if eps else 0
+    margin_of_error = intrinsic_value * 0.30
+    intrinsic_value_lower = intrinsic_value - margin_of_error
+    intrinsic_value_upper = intrinsic_value + margin_of_error
+    
+    return (price_to_earnings_ratio, price_to_book_ratio, debt_to_equity_ratio, return_on_equity, current_ratio, 
+            intrinsic_value, price_to_earnings_to_growth_ratio, debt_to_equity, profit_margin_to_revenue, 
+            intrinsic_value_lower, intrinsic_value_upper, revenue_growth)
 
-# Store Sentiment Data
-def store_sentiment_data(ticker_symbol, sentiment):
-    sentiment_collection = db.sentiment_analysis
-    sentiment_data = {
+# Momentum Indicators Calculations
+def calculate_rsi(df, period=14):
+    delta = df['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    rs = gain / loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi.iloc[-1]
+
+def calculate_macd(df, short_period=12, long_period=26, signal_period=9):
+    short_ema = df['Close'].ewm(span=short_period, adjust=False).mean()
+    long_ema = df['Close'].ewm(span=long_period, adjust=False).mean()
+    macd = short_ema - long_ema
+    signal = macd.ewm(span=signal_period, adjust=False).mean()
+    return macd.iloc[-1], signal.iloc[-1]
+
+def calculate_bollinger_bands(df, period=20):
+    sma = df['Close'].rolling(window=period).mean()
+    std = df['Close'].rolling(window=period).std()
+    upper_band = sma + (std * 2)
+    lower_band = sma - (std * 2)
+    return upper_band.iloc[-1], lower_band.iloc[-1]
+
+# Save Recommendation to Database
+def save_recommendation(ticker_symbol, recommendation, explanation, sentiment):
+    recommendations_collection = db.recommendations
+    recommendation_data = {
         "symbol": ticker_symbol,
+        "recommendation": recommendation,
+        "explanation": explanation,
         "sentiment": sentiment,
         "timestamp": datetime.utcnow()
     }
-    sentiment_collection.update_one(
+    recommendations_collection.update_one(
         {"symbol": ticker_symbol},
-        {"$set": sentiment_data},
+        {"$set": recommendation_data},
         upsert=True
     )
 
-# End Fetch Metrics and Sentiment
+# Analysis and Recommendation
+def get_recommendation(data, financials, sentiment, industry):
+    df = pd.DataFrame(data)
+    
+    # Calculate moving averages
+    df['MA20'] = df['Close'].rolling(window=20).mean()
+    df['MA50'] = df['Close'].rolling(window=50).mean()
+    
+    ma20_latest = df['MA20'].iloc[-1]
+    ma50_latest = df['MA50'].iloc[-1]
+    
+    # Calculate momentum indicators
+    rsi = calculate_rsi(df)
+    macd, signal = calculate_macd(df)
+    upper_band, lower_band = calculate_bollinger_bands(df)
+    
+    (pe_ratio, pb_ratio, de_ratio, roe, current_ratio, intrinsic_value, peg_ratio, debt_to_equity, 
+     profit_margin_to_revenue, intrinsic_value_lower, intrinsic_value_upper, revenue_growth) = calculate_ratios_and_intrinsic_value(financials)
+    
+    market_price = financials['market_price']
+    
+    thresholds = get_thresholds(industry)
+    pe_threshold = thresholds.get('pe_threshold', 25)
+    pb_threshold = thresholds.get('pb_threshold', 3)
+    de_threshold = thresholds.get('de_threshold', 1.5)
+    current_ratio_threshold = thresholds.get('current_ratio_threshold', 1.5)
+    peg_threshold = thresholds.get('peg_threshold', 1.0)
+    profit_margin_threshold = thresholds.get('profit_margin_threshold', 10)
+    revenue_growth_threshold = thresholds.get('revenue_growth_threshold', 0.1)
+    
+    recommendation = "Hold"
+    explanation = "Based on current analysis, holding the stock is recommended."
+
+    # Adjusted logic for determining the recommendation
+    if ma20_latest > ma50_latest and market_price < intrinsic_value_upper and rsi < 70 and macd > signal and market_price < upper_band:
+        if (pe_ratio < pe_threshold and pb_ratio < pb_threshold and de_ratio < de_threshold and 
+            current_ratio > current_ratio_threshold and revenue_growth > revenue_growth_threshold):
+            recommendation = "Buy"
+            explanation = (
+                f"**Buy Recommendation:**\n"
+                f"The 20-day moving average (MA20: {ma20_latest:.2f}) is above the 50-day moving average (MA50: {ma50_latest:.2f}), indicating an upward trend in the stock price.\n"
+                f"The stock is undervalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) higher than the current market price (${market_price:.2f}).\n"
+                f"RSI is {rsi:.2f}, which is below 70, indicating that the stock is not overbought.\n"
+                f"MACD ({macd:.2f}) is above the signal line ({signal:.2f}), indicating a positive momentum.\n"
+                f"The current price (${market_price:.2f}) is below the upper Bollinger Band (${upper_band:.2f}).\n"
+                f"Financial ratios support this recommendation:\n"
+                f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (below the threshold of {pe_threshold})\n"
+                f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (below the threshold of {pb_threshold})\n"
+                f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (below the threshold of {de_threshold})\n"
+                f"- Current Ratio: {current_ratio:.2f} (above the threshold of {current_ratio_threshold})\n"
+                f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (below the threshold of {peg_threshold})\n"
+                f"- Debt to Equity: {debt_to_equity:.2f} (below the threshold of {de_threshold})\n"
+                f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (above the threshold of {profit_margin_threshold}%)\n"
+                f"- Revenue Growth: {revenue_growth:.2f}% (above the threshold of {revenue_growth_threshold}%)\n"
+                f"These indicators suggest that the stock is reasonably priced and financially stable, making it a good buy opportunity."
+            )
+    elif ma20_latest < ma50_latest or market_price > intrinsic_value_lower or rsi > 70 or macd < signal or market_price > upper_band:
+        if (pe_ratio > pe_threshold or pb_ratio > pb_threshold or de_ratio > de_threshold or 
+            current_ratio < current_ratio_threshold or revenue_growth < revenue_growth_threshold):
+            recommendation = "Sell"
+            explanation = (
+                f"**Sell Recommendation:**\n"
+                f"The 20-day moving average (MA20: {ma20_latest:.2f}) is below the 50-day moving average (MA50: {ma50_latest:.2f}), indicating a downward trend in the stock price.\n"
+                f"The stock is overvalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) lower than the current market price (${market_price:.2f}).\n"
+                f"RSI is {rsi:.2f}, which is above 70, indicating that the stock is overbought.\n"
+                f"MACD ({macd:.2f}) is below the signal line ({signal:.2f}), indicating a negative momentum.\n"
+                f"The current price (${market_price:.2f}) is above the upper Bollinger Band (${upper_band:.2f}).\n"
+                f"Financial ratios support this recommendation:\n"
+                f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (above the threshold of {pe_threshold})\n"
+                f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (above the threshold of {pb_threshold})\n"
+                f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (above the threshold of {de_threshold})\n"
+                f"- Current Ratio: {current_ratio:.2f} (below the threshold of {current_ratio_threshold})\n"
+                f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (above the threshold of {peg_threshold})\n"
+                f"- Debt to Equity: {debt_to_equity:.2f} (above the threshold of {de_threshold})\n"
+                f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (below the threshold of {profit_margin_threshold}%)\n"
+                f"- Revenue Growth: {revenue_growth:.2f}% (below the threshold of {revenue_growth_threshold}%)\n"
+                f"These indicators suggest that the stock is overpriced and may face financial instability, making it a good sell opportunity."
+            )
+    else:
+        explanation = (
+            f"**Hold Recommendation:**\n"
+            f"The 20-day moving average (MA20: {ma20_latest:.2f}) is close to the 50-day moving average (MA50: {ma50_latest:.2f}), indicating no significant trend.\n"
+            f"The stock's market price (${market_price:.2f}) is within the intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}).\n"
+            f"RSI is {rsi:.2f}, which is below 70, indicating that the stock is not overbought.\n"
+            f"MACD ({macd:.2f}) is close to the signal line ({signal:.2f}), indicating no significant momentum.\n"
+            f"The current price (${market_price:.2f}) is close to the upper Bollinger Band (${upper_band:.2f}).\n"
+            f"Financial ratios support a hold decision:\n"
+            f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (below the threshold of {pe_threshold})\n"
+            f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (below the threshold of {pb_threshold})\n"
+            f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (below the threshold of {de_threshold})\n"
+            f"- Current Ratio: {current_ratio:.2f} (above the threshold of {current_ratio_threshold})\n"
+            f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (below the threshold of {peg_threshold})\n"
+            f"- Debt to Equity: {debt_to_equity:.2f} (below the threshold of {de_threshold})\n"
+            f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (above the threshold of {profit_margin_threshold}%)\n"
+            f"- Revenue Growth: {revenue_growth:.2f}% (above the threshold of {revenue_growth_threshold}%)\n"
+            f"These indicators suggest that the stock is fairly priced and financially stable, making it a hold opportunity."
+        )
+    
+    # Save the recommendation to the database
+    save_recommendation(financials['symbol'], recommendation, explanation, sentiment)
+    
+    return recommendation, explanation
 
 # Log Activity
-
 def log_activity(username, action, details=""):
     logs_collection = db.system_logs
     log_entry = {
@@ -161,135 +356,7 @@ def get_logs_by_type(log_type):
         log['_id'] = str(log['_id'])
     return logs
 
-# End Log Activity
-
-# Calcutions 😭😭
-
-def calculate_ratios_and_intrinsic_value(financials):
-    market_price = financials.get('market_price', 0)
-    eps = financials.get('eps', 0)
-    forward_pe = financials.get('forward_pe', 0)
-    growth_rate = financials.get('growth_rate', 0)
-    book_value_per_share = financials.get('book_value', 0)
-    net_income = financials.get('net_income', 0)
-    shareholders_equity = financials.get('shareholders_equity', 0)
-    total_liabilities = financials.get('total_liabilities', 0)
-    current_assets = financials.get('current_assets', 0)
-    current_liabilities = financials.get('current_liabilities', 0)
-    cash_flow = financials.get('cash_flow', 0)
-    debt = financials.get('debt', 0)
-    revenue = financials.get('revenue', 0)
-    gross_profit = financials.get('gross_profit', 0)
-    operating_margin = financials.get('operating_margin', 0)
-    profit_margin = financials.get('profit_margin', 0)
-    revenue_growth = financials.get('revenue_growth', 0)
-    
-    price_to_earnings_ratio = market_price / eps if eps else float('inf')  # P/E
-    price_to_book_ratio = market_price / book_value_per_share if book_value_per_share else float('inf')  # P/B
-    debt_to_equity_ratio = total_liabilities / shareholders_equity if shareholders_equity else float('inf')  # D/E
-    return_on_equity = net_income / shareholders_equity if shareholders_equity else 0  # ROE
-    current_ratio = current_assets / current_liabilities if current_liabilities else 0
-    price_to_earnings_to_growth_ratio = forward_pe / (growth_rate * 100) if growth_rate else float('inf')  # PEG
-    debt_to_equity = debt / shareholders_equity if shareholders_equity else float('inf')  # D/E
-    profit_margin_to_revenue = profit_margin * 100 if profit_margin else 0
-    
-    # Intrinsic value calculation with increased margin of error
-    intrinsic_value = (eps * (1 + 0.05) / 0.10) if eps else 0  # Assuming 5% growth and 10% discount rate
-    margin_of_error = intrinsic_value * 0.30  # 30% margin of error
-    intrinsic_value_lower = intrinsic_value - margin_of_error
-    intrinsic_value_upper = intrinsic_value + margin_of_error
-    
-    return (price_to_earnings_ratio, price_to_book_ratio, debt_to_equity_ratio, return_on_equity, current_ratio, 
-            intrinsic_value, price_to_earnings_to_growth_ratio, debt_to_equity, profit_margin_to_revenue, 
-            intrinsic_value_lower, intrinsic_value_upper, revenue_growth)
-
-#  End Calculations
-
-# Analisys
-def get_recommendation(data, financials):
-    df = pd.DataFrame(data)
-    df['MA20'] = df['Close'].rolling(window=20).mean()
-    df['MA50'] = df['Close'].rolling(window=50).mean()
-    
-    ma20_latest = df['MA20'].iloc[-1]
-    ma50_latest = df['MA50'].iloc[-1]
-    
-    (pe_ratio, pb_ratio, de_ratio, roe, current_ratio, intrinsic_value, peg_ratio, debt_to_equity, 
-     profit_margin_to_revenue, intrinsic_value_lower, intrinsic_value_upper, revenue_growth) = calculate_ratios_and_intrinsic_value(financials)
-    
-    market_price = financials['market_price']
-    
-    pe_threshold = 25  # Industry-dependent
-    pb_threshold = 3   # Industry-dependent
-    de_threshold = 1.5
-    current_ratio_threshold = 1.5
-    peg_threshold = 1.0  # PEG ratio below 1 is generally considered good
-    profit_margin_threshold = 10  # Example threshold for profit margin to revenue
-    revenue_growth_threshold = 0.1  # 10% revenue growth considered positive
-
-    recommendation = "Hold"
-    explanation = "Based on current analysis, holding the stock is recommended."
-
-    if ma20_latest > ma50_latest and market_price < intrinsic_value_upper:
-        if (pe_ratio < pe_threshold and pb_ratio < pb_threshold and de_ratio < de_threshold and 
-            current_ratio > current_ratio_threshold and revenue_growth > revenue_growth_threshold):
-            recommendation = "Buy"
-            explanation = (
-                f"**Buy Recommendation:**\n"
-                f"The 20-day moving average (MA20: {ma20_latest:.2f}) is above the 50-day moving average (MA50: {ma50_latest:.2f}), indicating an upward trend in the stock price.\n"
-                f"The stock is undervalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) higher than the current market price (${market_price:.2f}).\n"
-                f"Financial ratios support this recommendation:\n"
-                f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (below the threshold of {pe_threshold})\n"
-                f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (below the threshold of {pb_threshold})\n"
-                f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (below the threshold of {de_threshold})\n"
-                f"- Current Ratio: {current_ratio:.2f} (above the threshold of {current_ratio_threshold})\n"
-                f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (below the threshold of {peg_threshold})\n"
-                f"- Debt to Equity: {debt_to_equity:.2f} (below the threshold of {de_threshold})\n"
-                f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (above the threshold of {profit_margin_threshold}%)\n"
-                f"- Revenue Growth: {revenue_growth:.2f}% (above the threshold of {revenue_growth_threshold}%)\n"
-                f"These indicators suggest that the stock is reasonably priced and financially stable, making it a good buy opportunity."
-            )
-    elif ma20_latest < ma50_latest or market_price > intrinsic_value_lower:
-        if (pe_ratio > pe_threshold or pb_ratio > pb_threshold or de_ratio > de_threshold or 
-            current_ratio < current_ratio_threshold or revenue_growth < revenue_growth_threshold):
-            recommendation = "Sell"
-            explanation = (
-                f"**Sell Recommendation:**\n"
-                f"The 20-day moving average (MA20: {ma20_latest:.2f}) is below the 50-day moving average (MA50: {ma50_latest:.2f}), indicating a downward trend in the stock price.\n"
-                f"The stock is overvalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) lower than the current market price (${market_price:.2f}).\n"
-                f"Financial ratios support this recommendation:\n"
-                f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (above the threshold of {pe_threshold})\n"
-                f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (above the threshold of {pb_threshold})\n"
-                f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (above the threshold of {de_threshold})\n"
-                f"- Current Ratio: {current_ratio:.2f} (below the threshold of {current_ratio_threshold})\n"
-                f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (above the threshold of {peg_threshold})\n"
-                f"- Debt to Equity: {debt_to_equity:.2f} (above the threshold of {de_threshold})\n"
-                f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (below the threshold of {profit_margin_threshold}%)\n"
-                f"- Revenue Growth: {revenue_growth:.2f}% (below the threshold of {revenue_growth_threshold}%)\n"
-                f"These indicators suggest that the stock is overpriced and may face financial instability, making it a good sell opportunity."
-            )
-    else:
-        explanation = (
-            f"**Hold Recommendation:**\n"
-            f"The 20-day moving average (MA20: {ma20_latest:.2f}) is close to the 50-day moving average (MA50: {ma50_latest:.2f}), indicating no significant trend.\n"
-            f"The stock's market price (${market_price:.2f}) is within the intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}).\n"
-            f"Financial ratios support a hold decision:\n"
-            f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (below the threshold of {pe_threshold})\n"
-            f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (below the threshold of {pb_threshold})\n"
-            f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (below the threshold of {de_threshold})\n"
-            f"- Current Ratio: {current_ratio:.2f} (above the threshold of {current_ratio_threshold})\n"
-            f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (below the threshold of {peg_threshold})\n"
-            f"- Debt to Equity: {debt_to_equity:.2f} (below the threshold of {de_threshold})\n"
-            f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (above the threshold of {profit_margin_threshold}%)\n"
-            f"- Revenue Growth: {revenue_growth:.2f}% (above the threshold of {revenue_growth_threshold}%)\n"
-            f"These indicators suggest that the stock is fairly priced and financially stable, making it a hold opportunity."
-        )
-    
-    return recommendation, explanation
-# End of Analisys & Recommendation
-
 # User Preferences
-
 def get_user_preferences(username):
     preferences_collection = db.user_preferences
     preferences = preferences_collection.find_one({"user_id": username})
@@ -311,16 +378,12 @@ def update_user_preferences(username, key, value):
     )
     log_activity(username, 'update_preferences', f"Updated {key} to {value}")
 
-# End User Preferences
-
 # Validation
 def validate_user(username, password):
     user = db.users.find_one({"username": username, "password": password})
     if user:
         log_activity(username, 'login', "User logged in")
     return user
-
-# End Validation
 
 # Alerts
 def add_alert(username, ticker_symbol, condition, price):
@@ -407,8 +470,6 @@ def simulate_data_changes(socketio, ticker_symbol):
     simulated_price = random.uniform(75, 76)
     check_alerts_simulated(socketio, ticker_symbol, simulated_price)
     return simulated_price
-
-# End Alert and Simulations
 
 # Start the real-time check in a separate thread
 threading.Thread(target=check_alerts_real_time, args=(socketio,), daemon=True).start()

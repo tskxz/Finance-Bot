@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
 from flask_socketio import emit
-from operations import fetch_and_store_data, get_recommendation, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs, get_user_preferences, update_user_preferences, load_language_file, fetch_and_store_news, get_news_by_symbol
+from operations import fetch_and_store_data, get_recommendation, validate_user, add_alert, get_user_alerts, remove_alert, simulate_data_changes, check_alerts_real_time, get_logs_by_type, log_activity, get_all_logs, get_user_preferences, update_user_preferences, load_language_file, fetch_and_store_news, get_news_by_symbol, fetch_sentiment_data
 from operations import db
 import threading
 
@@ -71,7 +71,9 @@ def init_routes(app, socketio):
         if stock_data:
             data = stock_data['history']
             financials = stock_data.get('financials', {})
-            recommendation, explanation = get_recommendation(data, financials)
+            industry = stock_data.get('sector', 'Unknown')
+            sentiment = fetch_sentiment_data(ticker_symbol)  # Fetch sentiment data
+            recommendation, explanation = get_recommendation(data, financials, sentiment, industry)
             firm_name = stock_data.get('name', 'Unknown Firm') 
             
             # Fetch and store news
@@ -79,7 +81,7 @@ def init_routes(app, socketio):
             news_articles = get_news_by_symbol(ticker_symbol)
             
             return render_template('index.html', data=data, recommendation=recommendation, explanation=explanation,
-                                firm_name=firm_name, ticker=ticker_symbol,
+                                firm_name=firm_name, ticker=ticker_symbol, sentiment=sentiment,
                                 news_articles=news_articles)
         else:
             return f"Dados não encontrados para {ticker_symbol}!"
