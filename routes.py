@@ -179,7 +179,7 @@ def init_routes(app, socketio):
 
     @app.before_request
     def before_request():
-        allowed_routes = ['login', 'get_logs', 'change_theme', 'change_language']
+        allowed_routes = ['get_users', 'login', 'get_logs', 'change_theme', 'change_language']
         if 'username' not in session and request.endpoint not in allowed_routes:
             return redirect(url_for('login'))
 
