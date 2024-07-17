@@ -11,13 +11,14 @@ from bson import ObjectId
 from flask import session
 from industry_thresholds import get_thresholds
 import json
-
+import os
 # Initialize SocketIO
 socketio = SocketIO()
 
 # MongoDB Connection
 try:
-    client = MongoClient("mongodb://localhost:27017/")
+    mongo_uri = os.getenv("MONGO_URI", 'mongodb://localhost:27017')
+    client = MongoClient(mongo_uri)
     db = client.stock_data
     print("MongoDB connection established successfully.")
 except Exception as e:
