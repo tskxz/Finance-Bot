@@ -1,6 +1,7 @@
 from pymongo import MongoClient
-
-client = MongoClient("mongodb://localhost:27017/")
+import os
+mongo_uri = os.getenv("MONGO_URI", 'mongodb://localhost:27017')
+client = MongoClient(mongo_uri)
 db = client.stock_data
 
 def insert_initial_data():
