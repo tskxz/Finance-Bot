@@ -57,7 +57,7 @@ def fetch_and_store_news(ticker_symbol):
                     {"$set": news_entry},
                     upsert=True
                 )
-            log_activity(session['username'], 'fetch_and_store_news', f"Fetched news for {ticker_symbol}")
+            log_activity(session.get('username', 'system'), 'fetch_and_store_news', f"Fetched news for {ticker_symbol}")
     else:
         print(f"Error fetching news for {ticker_symbol}: {response.status_code}")
 
@@ -125,6 +125,9 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
         'symbol': ticker_symbol
     }
     
+    # Print financials to debug
+    print(f"Financials for {ticker_symbol}: {financials}")
+    
     stocks_collection = db.stocks
     stocks_collection.update_one(
         {"symbol": ticker_symbol},
@@ -135,7 +138,7 @@ def fetch_and_store_data(ticker_symbol, period='6mo'):
     sentiment = fetch_sentiment_data(ticker_symbol)
     store_sentiment_data(ticker_symbol, sentiment)
 
-    log_activity(session['username'], 'fetch_and_store_data', f"Fetched data for {ticker_symbol}")
+    log_activity(session.get('username', 'system'), 'fetch_and_store_data', f"Fetched data for {ticker_symbol}")
 
 # Calculations for Financial Ratios and Intrinsic Value
 def calculate_ratios_and_intrinsic_value(financials):
@@ -156,7 +159,26 @@ def calculate_ratios_and_intrinsic_value(financials):
     operating_margin = financials.get('operating_margin', 0)
     profit_margin = financials.get('profit_margin', 0)
     revenue_growth = financials.get('revenue_growth', 0)
-    
+
+    # Print statements to see the data
+    print(f"Market Price: {market_price}")
+    print(f"EPS: {eps}")
+    print(f"Forward PE: {forward_pe}")
+    print(f"Growth Rate: {growth_rate}")
+    print(f"Book Value Per Share: {book_value_per_share}")
+    print(f"Net Income: {net_income}")
+    print(f"Shareholders' Equity: {shareholders_equity}")
+    print(f"Total Liabilities: {total_liabilities}")
+    print(f"Current Assets: {current_assets}")
+    print(f"Current Liabilities: {current_liabilities}")
+    print(f"Cash Flow: {cash_flow}")
+    print(f"Debt: {debt}")
+    print(f"Revenue: {revenue}")
+    print(f"Gross Profit: {gross_profit}")
+    print(f"Operating Margin: {operating_margin}")
+    print(f"Profit Margin: {profit_margin}")
+    print(f"Revenue Growth: {revenue_growth}")
+
     # Calculate Price to Earnings Ratio (P/E)
     price_to_earnings_ratio = market_price / eps if eps else float('inf')
     
@@ -230,6 +252,11 @@ def save_recommendation(ticker_symbol, recommendation, explanation, sentiment):
         upsert=True
     )
 
+# New Evaluation Function
+def evaluate_metric(value, threshold, higher_is_better=True):
+    """Evaluates a single metric against a threshold."""
+    return 1 if (value >= threshold if higher_is_better else value <= threshold) else 0
+
 # Analysis and Recommendation
 def get_recommendation(data, financials, sentiment, industry):
     df = pd.DataFrame(data)
@@ -260,55 +287,66 @@ def get_recommendation(data, financials, sentiment, industry):
     profit_margin_threshold = thresholds.get('profit_margin_threshold', 10)
     revenue_growth_threshold = thresholds.get('revenue_growth_threshold', 0.1)
     
-    recommendation = "Hold"
-    explanation = "Based on current analysis, holding the stock is recommended."
-
-    # Adjusted logic for determining the recommendation
-    if ma20_latest > ma50_latest and market_price < intrinsic_value_upper and rsi < 70 and macd > signal and market_price < upper_band:
-        if (pe_ratio < pe_threshold and pb_ratio < pb_threshold and de_ratio < de_threshold and 
-            current_ratio > current_ratio_threshold and revenue_growth > revenue_growth_threshold):
-            recommendation = "Buy"
-            explanation = (
-                f"**Buy Recommendation:**\n"
-                f"The 20-day moving average (MA20: {ma20_latest:.2f}) is above the 50-day moving average (MA50: {ma50_latest:.2f}), indicating an upward trend in the stock price.\n"
-                f"The stock is undervalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) higher than the current market price (${market_price:.2f}).\n"
-                f"RSI is {rsi:.2f}, which is below 70, indicating that the stock is not overbought.\n"
-                f"MACD ({macd:.2f}) is above the signal line ({signal:.2f}), indicating a positive momentum.\n"
-                f"The current price (${market_price:.2f}) is below the upper Bollinger Band (${upper_band:.2f}).\n"
-                f"Financial ratios support this recommendation:\n"
-                f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (below the threshold of {pe_threshold})\n"
-                f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (below the threshold of {pb_threshold})\n"
-                f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (below the threshold of {de_threshold})\n"
-                f"- Current Ratio: {current_ratio:.2f} (above the threshold of {current_ratio_threshold})\n"
-                f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (below the threshold of {peg_threshold})\n"
-                f"- Debt to Equity: {debt_to_equity:.2f} (below the threshold of {de_threshold})\n"
-                f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (above the threshold of {profit_margin_threshold}%)\n"
-                f"- Revenue Growth: {revenue_growth:.2f}% (above the threshold of {revenue_growth_threshold}%)\n"
-                f"These indicators suggest that the stock is reasonably priced and financially stable, making it a good buy opportunity."
-            )
-    elif ma20_latest < ma50_latest or market_price > intrinsic_value_lower or rsi > 70 or macd < signal or market_price > upper_band:
-        if (pe_ratio > pe_threshold or pb_ratio > pb_threshold or de_ratio > de_threshold or 
-            current_ratio < current_ratio_threshold or revenue_growth < revenue_growth_threshold):
-            recommendation = "Sell"
-            explanation = (
-                f"**Sell Recommendation:**\n"
-                f"The 20-day moving average (MA20: {ma20_latest:.2f}) is below the 50-day moving average (MA50: {ma50_latest:.2f}), indicating a downward trend in the stock price.\n"
-                f"The stock is overvalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) lower than the current market price (${market_price:.2f}).\n"
-                f"RSI is {rsi:.2f}, which is above 70, indicating that the stock is overbought.\n"
-                f"MACD ({macd:.2f}) is below the signal line ({signal:.2f}), indicating a negative momentum.\n"
-                f"The current price (${market_price:.2f}) is above the upper Bollinger Band (${upper_band:.2f}).\n"
-                f"Financial ratios support this recommendation:\n"
-                f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (above the threshold of {pe_threshold})\n"
-                f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (above the threshold of {pb_threshold})\n"
-                f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (above the threshold of {de_threshold})\n"
-                f"- Current Ratio: {current_ratio:.2f} (below the threshold of {current_ratio_threshold})\n"
-                f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (above the threshold of {peg_threshold})\n"
-                f"- Debt to Equity: {debt_to_equity:.2f} (above the threshold of {de_threshold})\n"
-                f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (below the threshold of {profit_margin_threshold}%)\n"
-                f"- Revenue Growth: {revenue_growth:.2f}% (below the threshold of {revenue_growth_threshold}%)\n"
-                f"These indicators suggest that the stock is overpriced and may face financial instability, making it a good sell opportunity."
-            )
+    # Initialize score
+    score = 0
+    
+    # Evaluate each metric and add to the score
+    score += evaluate_metric(ma20_latest, ma50_latest, higher_is_better=True)  # MA20 > MA50
+    score += evaluate_metric(market_price, intrinsic_value_upper, higher_is_better=False)  # Market price < Intrinsic value upper
+    score += evaluate_metric(rsi, 70, higher_is_better=False)  # RSI < 70
+    score += evaluate_metric(macd, signal, higher_is_better=True)  # MACD > Signal
+    score += evaluate_metric(market_price, upper_band, higher_is_better=False)  # Market price < Upper Bollinger Band
+    score += evaluate_metric(pe_ratio, pe_threshold, higher_is_better=False)  # PE < Threshold
+    score += evaluate_metric(pb_ratio, pb_threshold, higher_is_better=False)  # PB < Threshold
+    score += evaluate_metric(de_ratio, de_threshold, higher_is_better=False)  # DE < Threshold
+    score += evaluate_metric(current_ratio, current_ratio_threshold, higher_is_better=True)  # Current ratio > Threshold
+    score += evaluate_metric(peg_ratio, peg_threshold, higher_is_better=False)  # PEG < Threshold
+    score += evaluate_metric(profit_margin_to_revenue, profit_margin_threshold, higher_is_better=True)  # Profit margin > Threshold
+    score += evaluate_metric(revenue_growth, revenue_growth_threshold, higher_is_better=True)  # Revenue growth > Threshold
+    
+    # Determine the recommendation based on the overall score
+    if score >= 9:  # Adjust this threshold based on desired flexibility
+        recommendation = "Buy"
+        explanation = (
+            f"**Buy Recommendation:**\n"
+            f"The 20-day moving average (MA20: {ma20_latest:.2f}) is above the 50-day moving average (MA50: {ma50_latest:.2f}), indicating an upward trend in the stock price.\n"
+            f"The stock is undervalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) higher than the current market price (${market_price:.2f}).\n"
+            f"RSI is {rsi:.2f}, which is below 70, indicating that the stock is not overbought.\n"
+            f"MACD ({macd:.2f}) is above the signal line ({signal:.2f}), indicating a positive momentum.\n"
+            f"The current price (${market_price:.2f}) is below the upper Bollinger Band (${upper_band:.2f}).\n"
+            f"Financial ratios support this recommendation:\n"
+            f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (below the threshold of {pe_threshold})\n"
+            f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (below the threshold of {pb_threshold})\n"
+            f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (below the threshold of {de_threshold})\n"
+            f"- Current Ratio: {current_ratio:.2f} (above the threshold of {current_ratio_threshold})\n"
+            f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (below the threshold of {peg_threshold})\n"
+            f"- Debt to Equity: {debt_to_equity:.2f} (below the threshold of {de_threshold})\n"
+            f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (above the threshold of {profit_margin_threshold}%)\n"
+            f"- Revenue Growth: {revenue_growth:.2f}% (above the threshold of {revenue_growth_threshold}%)\n"
+            f"These indicators suggest that the stock is reasonably priced and financially stable, making it a good buy opportunity."
+        )
+    elif score <= 4:  # Adjust this threshold based on desired flexibility
+        recommendation = "Sell"
+        explanation = (
+            f"**Sell Recommendation:**\n"
+            f"The 20-day moving average (MA20: {ma20_latest:.2f}) is below the 50-day moving average (MA50: {ma50_latest:.2f}), indicating a downward trend in the stock price.\n"
+            f"The stock is overvalued, with an intrinsic value range (${intrinsic_value_lower:.2f} - ${intrinsic_value_upper:.2f}) lower than the current market price (${market_price:.2f}).\n"
+            f"RSI is {rsi:.2f}, which is above 70, indicating that the stock is overbought.\n"
+            f"MACD ({macd:.2f}) is below the signal line ({signal:.2f}), indicating a negative momentum.\n"
+            f"The current price (${market_price:.2f}) is above the upper Bollinger Band (${upper_band:.2f}).\n"
+            f"Financial ratios support this recommendation:\n"
+            f"- Price to Earnings Ratio (P/E): {pe_ratio:.2f} (above the threshold of {pe_threshold})\n"
+            f"- Price to Book Ratio (P/B): {pb_ratio:.2f} (above the threshold of {pb_threshold})\n"
+            f"- Debt to Equity Ratio (D/E): {de_ratio:.2f} (above the threshold of {de_threshold})\n"
+            f"- Current Ratio: {current_ratio:.2f} (below the threshold of {current_ratio_threshold})\n"
+            f"- Price to Earnings to Growth Ratio (PEG): {peg_ratio:.2f} (above the threshold of {peg_threshold})\n"
+            f"- Debt to Equity: {debt_to_equity:.2f} (above the threshold of {de_threshold})\n"
+            f"- Profit Margin to Revenue: {profit_margin_to_revenue:.2f}% (below the threshold of {profit_margin_threshold}%)\n"
+            f"- Revenue Growth: {revenue_growth:.2f}% (below the threshold of {revenue_growth_threshold}%)\n"
+            f"These indicators suggest that the stock is overpriced and may face financial instability, making it a good sell opportunity."
+        )
     else:
+        recommendation = "Hold"
         explanation = (
             f"**Hold Recommendation:**\n"
             f"The 20-day moving average (MA20: {ma20_latest:.2f}) is close to the 50-day moving average (MA50: {ma50_latest:.2f}), indicating no significant trend.\n"
