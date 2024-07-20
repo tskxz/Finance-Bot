@@ -7,3 +7,4 @@ bokeh
 yfinance
 Flask-SocketIO
 eventlet
+alpha_vantage
