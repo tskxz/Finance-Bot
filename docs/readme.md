@@ -17,7 +17,7 @@ Este projeto tem como objetivo criar uma aplicação web para análise de dados 
    - É feita uma recomendação de "Manutenção" se as médias móveis não mostrarem um padrão claro.
 
 4. **Visualização Gráfica com Bokeh:**
-   - Utiliza a biblioteca Bokeh para criar gráficos interativos dos preços de fechamento das ações e suas médias móveis.
+   - Utiliza a biblioteca Bokeh para criar gráficos   rativos dos preços de fechamento das ações e suas médias móveis.
    - Os gráficos são incorporados na página web para fácil visualização e compreensão dos dados.
 
 5. **Autenticação de Utilizadores:**
@@ -85,6 +85,51 @@ Para executar esta aplicação localmente, é necessário ter o Python instalado
 
 - **SweetAlert:** Biblioteca para substituição de caixas de diálogo JavaScript por pop-ups bonitos, responsivos, personalizáveis e acessíveis (WAI-ARIA).
   - [Documentação SweetAlert](https://sweetalert.js.org/)
+
+## Integração com APIs
+
+### Yahoo Finance API
+
+A aplicação utiliza a API do Yahoo Finance para obter dados financeiros e históricos de ações. Para isso, usamos a biblioteca `yfinance`, que fornece uma interface fácil de usar para acessar esses dados.
+
+- **Uso da API:**
+  - Utilizamos a biblioteca `yfinance` para obter informações detalhadas sobre as ações. Por exemplo, para recuperar o preço atual de uma ação, utilizamos o seguinte código:
+
+    ```python
+    import yfinance as yf
+    ticker = yf.Ticker('AAPL')
+    ticker_info = ticker.info
+    current_price = ticker_info.get('currentPrice')
+    ```
+
+  - O código acima cria um objeto para a ação da Apple e obtém informações financeiras relevantes através da propriedade `info`.
+
+- **Dados Recuperados:**
+  - Preço atual da ação.
+  - Histórico de preços (preços de fechamento, máximos e mínimos).
+  - Métricas financeiras como P/E (Price to Earnings Ratio) e EPS (Earnings Per Share).
+
+### Financial Modeling Prep API
+
+A API do Financial Modeling Prep fornece dados financeiros detalhados, como balanço patrimonial, demonstração de resultados e fluxos de caixa. Esses dados são essenciais para a análise fundamentalista e para a criação de recomendações de investimento.
+
+- **Uso da API:**
+  - Dados financeiros são acessados através de requisições HTTP para endpoints específicos. Por exemplo, para obter o balanço patrimonial, utilizamos o seguinte código:
+
+    ```python
+    import requests
+    API_KEY_FMP = 'YOUR_API_KEY'
+    balance_sheet_url = f'https://financialmodelingprep.com/api/v3/balance-sheet-statement/AAPL?apikey={API_KEY_FMP}'
+    balance_sheet_response = requests.get(balance_sheet_url)
+    balance_sheet_data = balance_sheet_response.json()[0]
+    ```
+
+  - O código acima faz uma requisição para o endpoint de balanço patrimonial da ação da Apple e analisa a resposta JSON para obter os dados necessários.
+
+- **Dados Recuperados:**
+  - Balanço patrimonial: ativos, passivos e patrimônio líquido.
+  - Demonstração de resultados: receitas, despesas, lucro líquido.
+  - Fluxos de caixa: entradas e saídas de caixa.
 
 ## Sistema de Alertas
 
